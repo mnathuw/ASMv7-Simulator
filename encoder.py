@@ -1,4 +1,4 @@
-# Assembly to binary encoder
+# assembly to binary encoder
 def Encoder(number):
     if(number >= 0):
         binary_str = bin(number)
