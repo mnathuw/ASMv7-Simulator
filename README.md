@@ -32,17 +32,17 @@ python ui.py
 
 ## Project structure:
 ARMv7-Simulator/
-├── assembly.py       # Main driver: loads, decodes, and executes instructions
-├── memory.py         # Memory model: read/write logic and memory setup
-├── data.py           # CPU state: general-purpose registers, flags, constants
-├── decoder.py        # Disassembler: binary to assembly translation
-├── encoder.py        # Assembler: assembly to binary translation
-├── dict.py           # Lookup tables for opcodes, registers, flags, etc.
-├── ui.py             # (Optional) GUI to visualize instruction execution
-├── demo/             # Sample test programs
-│   ├── test1.txt     # Example: ADD r1, r2, r3
-│   ├── test2.txt     # Example: MOV r0, #5
-└── README.md         # Project overview and usage guide
+  assembly.py       # Main driver: loads, decodes, and executes instructions
+  memory.py         # Memory model: read/write logic and memory setup
+  data.py           # CPU state: general-purpose registers, flags, constants
+  decoder.py        # Disassembler: binary to assembly translation
+  encoder.py        # Assembler: assembly to binary translation
+  dict.py           # Lookup tables for opcodes, registers, flags, etc.
+  ui.py             # (Optional) GUI to visualize instruction execution
+  demo/             # Sample test programs
+    test1.txt     # Example: ADD r1, r2, r3
+    test2.txt     # Example: MOV r0, #5
+  README.md         # Project overview and usage guide
 
 
 ## Collaborators:
