@@ -16,17 +16,16 @@ A Python-based simulator and disassembler for the ARMv7 32-bit ISA and 16-bit Th
 
 ## Installation and Setup
 
-1. Install Python (version 3.8 or higher recommended).
-2. Clone the repository:
+1. Clone the repository (Python 3.8+ recommended)
 ```bash
-   git clone https://github.com/mnathuw/ARMv7-Simulator.git
-   cd ARMv7-Simulator
+git clone https://github.com/mnathuw/ARMv7-Simulator.git
+cd ARMv7-Simulator
 ```
-3. Run test program
+2. Run test program
 ```bash
 python assembly.py Demo/find_max_thumb.txt
 ```
-4. [Optional] Launch the GUI (if this task has done)
+3. [Optional] Launch the GUI (if this task has done)
 ```bash
 python ui.py
 ```
