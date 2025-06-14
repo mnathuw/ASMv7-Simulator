@@ -254,9 +254,18 @@ def l_shift_32_c(a, shift_val, line):
             a = a[1:] + '0'
     result.append(a)
     return result, carry
+# a = '00000000000000000000000000001010'
+# shift_val = 2
+# result, carry = l_shift_32_c(a, shift_val, "example line")
+# print(result)  # should print ['00000000000000000000000000101000']
 
-a = '00000000000000000000000000001010'
-shift_val = 2
-result, carry = l_shift_32_c(a, shift_val, "example line")
-print(result)  # should print ['00000000000000000000000000101000']
+def r_shift_32_c(a, shift_val, line): pass
 
+def find_one_memory(model, addr_input): pass
+def replace_one_memory(model, addr_input, mem_input): pass
+def find_one_memory_in_byte(model_byte, addr_input): pass
+def replace_one_memory_byte(model, addr_input, mem_input): pass
+
+def ascii_memory(string, group_size=4): pass
+def split_hex(hex_str): pass
+def combine_hex(memory): pass
