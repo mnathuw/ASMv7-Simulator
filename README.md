@@ -30,7 +30,7 @@ python assembly.py Demo/find_max_thumb.txt
 python ui.py
 ```
 ## Collaborators:
-[@AbiaShahbaz](https://github.com/AbiaShahbaz) [@mnathuw](https://github.com/mnathuw)
+[@AbiaShahbaz](https://github.com/AbiaShahbaz) [@mnathuw](https://github.com/mnathuw) [@Akshithb-77](https://github.com/Akshithb-77)
 
 ## To do:
 ✅ decoder.py
