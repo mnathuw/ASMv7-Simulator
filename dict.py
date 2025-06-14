@@ -1080,7 +1080,269 @@ def replace_one_memory_byte(model, addr_input, mem_input):
 # replace_one_memory_byte(model_data, "0x1004", "11223344")  # should update row 1, col 2
 # print(model_data)
 
-# twos_complement_to_signed function to convert hex address to signed integer
-def replace_one_memory_in_byte(model, addr_input, mem_input): pass
-def replace_one_memory_in_halfword(model, addr_input, mem_input): pass
-def replace_one_memory_halfword_in_byte(model, addr_input, mem_input): pass
+# replace_one_memory_in_byte function to update a specific byte at an address
+def replace_one_memory_byte(model, addr_input, mem_input):
+    # extract the byte to insert (only the first byte matters)
+    mem_byte = split_hex(mem_input).split()[0]  # e.g., "AA"
+
+    # convert address to int, calculate aligned base and byte offset
+    addr_int = int(addr_input, 16)
+    offset = addr_int % 4
+    aligned_addr = addr_int - offset
+    aligned_addr_hex = format(aligned_addr, "#010x")  # e.g., "0x00001000"
+
+    # convert to signed value for matching
+    search_value = twos_complement_to_signed(aligned_addr_hex)
+    max_row = len(model) - 1
+
+    for row in range(1, len(model)):
+        addr = model[row][0]
+        addr_value = twos_complement_to_signed(addr)
+
+        # determine next row address if not last
+        if row != max_row:
+            addr_next = model[row + 1][0]
+            addr_next_value = twos_complement_to_signed(addr_next)
+        else:
+            addr_next = None
+            addr_next_value = None
+
+        # exact match
+        if search_value == addr_value:
+            print(f"Updating row {row}, col {offset + 1}")
+            model[row][offset + 1] = mem_byte
+            return
+
+        # between current and next
+        if addr_next and addr_value < search_value < addr_next_value:
+            num = int((search_value - addr_value) / 4) + 1
+            if num < len(model[row]):
+                print(f"Updating row {row}, col {num}")
+                model[row][num] = mem_byte
+                return
+
+        # greater than last known
+        if not addr_next and search_value > addr_value:
+            num = int((search_value - addr_value) / 4) + 1
+            if num < len(model[row]):
+                print(f"Updating row {row}, col {num}")
+                model[row][num] = mem_byte
+                return
+
+    # search value before all known addresses
+    last_addr = model[-1][0]
+    last_value = twos_complement_to_signed(last_addr)
+    if search_value < last_value:
+        print("Address is below last known memory block.")
+    else:
+        print("Address not found or out of range.")
+
+# model_data = [
+#     ["Address", "Col1", "Col2", "Col3", "Col4"],
+#     ["0x1000", "EF", "BE", "AD", "DE"],
+#     ["0x1010", "CE", "FA", "ED", "FE"]
+# ]
+# replace_one_memory_byte(model_data, "0x1000", "AABBCCDD")  # updates Col1 of row 1
+# replace_one_memory_byte(model_data, "0x1002", "11")        # updates Col3 of row 1
+# replace_one_memory_byte(model_data, "0x1014", "22")        # updates Col2 of row 2
+# print(model_data)
+
+def replace_one_memory_byte_in_byte(model, addr_input, mem_input):
+    def split_hex(hex_str):
+        # converts "AABBCCDD" -> "DD CC BB AA"
+        return ' '.join(hex_str[i:i+2] for i in range(0, len(hex_str), 2)[::-1])
+
+    def combine_hex(byte_list):
+        # converts ['AA', 'BB', 'CC', 'DD'] -> "AABBCCDD"
+        return ''.join(byte_list)
+
+    def to_signed(hex_str):
+        val = int(hex_str, 16)
+        return val - 0x100000000 if val >= 0x80000000 else val
+
+    def update_memory(row, col, new_byte, offset):
+        byte_list = model[row][col].split()
+        byte_list[offset] = new_byte
+        model[row][col] = ' '.join(byte_list)
+
+    # parse input
+    mem_byte = split_hex(mem_input).split()[0]
+    addr_int = int(addr_input, 16)
+    byte_offset = addr_int % 4
+    aligned_addr = addr_int - byte_offset
+    search_value = to_signed(format(aligned_addr, "08x"))
+
+    max_row = len(model) - 1
+
+    for row in range(1, len(model)):
+        curr_addr_val = to_signed(model[row][0])
+        next_addr_val = to_signed(model[row + 1][0]) if row < max_row else None
+
+        if search_value == curr_addr_val:
+            update_memory(row, 1, mem_byte, byte_offset)
+            return
+
+        if next_addr_val and curr_addr_val < search_value < next_addr_val:
+            col = int((search_value - curr_addr_val) / 4) + 1
+            update_memory(row, col, mem_byte, byte_offset)
+            return
+
+        if next_addr_val is None and search_value > curr_addr_val:
+            col = int((search_value - curr_addr_val) / 4) + 1
+            update_memory(row, col, mem_byte, byte_offset)
+            return
+
+# model_data = [
+#     ["Address", "Col1", "Col2", "Col3", "Col4"],
+#     ["0x1000", "EF BE AD DE", "00 00 00 00", "00 00 00 00", "00 00 00 00"],
+#     ["0x1010", "CE FA ED FE", "00 00 00 00", "00 00 00 00", "00 00 00 00"]
+# ]
+# print("Before:")
+# for row in model_data:
+#     print(row)
+# replace_one_memory_byte_in_byte(model_data, "0x1000", "AABBCCDD")  # replaces first byte of Col1 (DE -> DD)
+# replace_one_memory_byte_in_byte(model_data, "0x1002", "11")        # replaces 3rd byte of Col1
+# replace_one_memory_byte_in_byte(model_data, "0x1014", "22")        # replaces 2nd byte of Col2
+# print("\nAfter:")
+# for row in model_data:
+#     print(row)
+
+
+# replace_one_memory_in_halfword function to update a specific halfword at an address
+def replace_one_memory_in_halfword(model, addr_input, mem_input):
+    def split_hex(hex_str):
+        return ' '.join(hex_str[i:i+2] for i in range(0, len(hex_str), 2)[::-1])  # little endian
+
+    def combine_hex(byte_list):
+        return ''.join(byte_list)
+
+    def to_signed(hex_str):
+        val = int(hex_str, 16)
+        return val - 0x100000000 if val >= 0x80000000 else val
+
+    def update_halfword(row, col, offset, mem_bytes):
+        byte_list = model[row][col].split()
+        if offset in [0, 2]:
+            byte_list[offset] = mem_bytes[0]
+            byte_list[offset + 1] = mem_bytes[1]
+        else:
+            # not halfword-aligned: overwrite with "00 00"
+            byte_list[0] = "00"
+            byte_list[1] = "00"
+        model[row][col] = ' '.join(byte_list)
+
+    mem_bytes = split_hex(mem_input).split()  # e.g., ['DD', 'CC']
+    addr_int = int(addr_input, 16)
+    offset = addr_int % 4
+    aligned_addr = addr_int - offset
+    search_value = to_signed(format(aligned_addr, "08x"))
+    max_row = len(model) - 1
+
+    for row in range(1, len(model)):
+        curr_addr = to_signed(model[row][0])
+        next_addr = to_signed(model[row + 1][0]) if row < max_row else None
+
+        if search_value == curr_addr:
+            update_halfword(row, 1, offset, mem_bytes)
+            return
+
+        if next_addr and curr_addr < search_value < next_addr:
+            col = int((search_value - curr_addr) / 4) + 1
+            update_halfword(row, col, offset, mem_bytes)
+            return
+
+        if not next_addr and search_value > curr_addr:
+            col = int((search_value - curr_addr) / 4) + 1
+            update_halfword(row, col, offset, mem_bytes)
+            return
+# model_data = [
+#     ["Address", "Col1", "Col2", "Col3", "Col4"],
+#     ["0x1000", "EF BE AD DE", "00 00 00 00", "00 00 00 00", "00 00 00 00"],
+#     ["0x1010", "CE FA ED FE", "00 00 00 00", "00 00 00 00", "00 00 00 00"]
+# ]
+# print("Before:")
+# for row in model_data:
+#     print(row)
+# # test: aligned halfword replacement
+# replace_one_memory_in_halfword(model_data, "0x1000", "AABB")  # should update first 2 bytes of Col1
+# replace_one_memory_in_halfword(model_data, "0x1002", "1122")  # should update last 2 bytes of Col1
+# replace_one_memory_in_halfword(model_data, "0x1014", "3344")  # should update Col2 of row 2
+# print("\nAfter:")
+# for row in model_data:
+#     print(row)
+
+# replace_one_memory_halfword_in_byte function to update a specific halfword at an address
+def replace_one_memory_halfword_in_byte(model, addr_input, mem_input):
+    def split_hex(hex_str):
+        return ' '.join(hex_str[i:i+2] for i in range(0, len(hex_str), 2)[::-1])  # little-endian
+
+    def combine_hex(byte_list):
+        return ''.join(byte_list)
+
+    def to_signed(hex_str):
+        val = int(hex_str, 16)
+        return val - 0x100000000 if val >= 0x80000000 else val
+
+    mem_input = split_hex(mem_input).split()  # e.g., ['DD', 'CC']
+    addr_int = int(addr_input, 16)
+    offset = addr_int % 4
+    aligned_addr = addr_int - offset
+    search_value = to_signed(format(aligned_addr, "08x"))
+    max_row = len(model) - 1
+
+    for row in range(1, len(model)):
+        curr_addr = to_signed(model[row][0])
+        next_addr = to_signed(model[row + 1][0]) if row < max_row else None
+
+        if search_value == curr_addr:
+            col_data = model[row][1].split()
+            if offset in [0, 2]:
+                col_data[0] = mem_input[0]
+                col_data[1] = mem_input[1]
+            else:
+                col_data[0] = "00"
+                col_data[1] = "00"
+            col_data.reverse()
+            model[row][1] = ' '.join(col_data)
+            return
+
+        if next_addr and curr_addr < search_value < next_addr:
+            col = int((search_value - curr_addr) / 4) + 1
+            col_data = model[row][col].split()
+            if offset in [0, 2]:
+                col_data[0] = mem_input[0]
+                col_data[1] = mem_input[1]
+            else:
+                col_data[0] = "00"
+                col_data[1] = "00"
+            col_data.reverse()
+            model[row][col] = ' '.join(col_data)
+            return
+
+        if not next_addr and search_value > curr_addr:
+            col = int((search_value - curr_addr) / 4) + 1
+            col_data = model[row][col].split()
+            if offset in [0, 2]:
+                col_data[0] = mem_input[0]
+                col_data[1] = mem_input[1]
+            else:
+                col_data[0] = "00"
+                col_data[1] = "00"
+            col_data.reverse()
+            model[row][col] = ' '.join(col_data)
+            return
+# model_data = [
+#     ["Address", "Col1", "Col2", "Col3", "Col4"],
+#     ["0x1000", "EF BE AD DE", "00 00 00 00", "00 00 00 00", "00 00 00 00"],
+#     ["0x1010", "CE FA ED FE", "00 00 00 00", "00 00 00 00", "00 00 00 00"]
+# ]
+# print("Before:")
+# for row in model_data:
+#     print(row)
+# replace_one_memory_halfword_in_byte(model_data, "0x1000", "AABB")  # col1: lowest 2 bytes -> BB AA
+# replace_one_memory_halfword_in_byte(model_data, "0x1002", "1122")  # col1: highest 2 bytes -> 22 11
+# replace_one_memory_halfword_in_byte(model_data, "0x1014", "3344")  # col2: -> 44 33
+# print("\nAfter:")
+# for row in model_data:
+#     print(row)
+
