@@ -22,7 +22,15 @@ regex_const = re.compile(r"#-?\d+$")
 regex_const_hex = re.compile(r"^#0x[0-9a-fA-F]+$")
 
 # instruction parser and helper filters
-def split_and_filter(line): pass
+def split_and_filter(line):
+    # remove leading/trailing spaces
+    line = line.strip()
+    # replace commas with spaces to unify separators
+    line = line.replace(',', ' ')
+    # split by whitespace
+    parts = line.split()
+    return parts
+# print(split_and_filter("MOV r0, #1, S"))  # ['MOV', 'r0', '#1', 'S']
 
 # memory-related helpers
 def check_memory(self, line, address, lines, data_labels): pass

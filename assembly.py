@@ -1,6 +1,5 @@
 # main driver tying everything together
 import re
-from dict import line_edit_dict, conditon_dict
 import dict
 from encoder import Encoder
 from decoder import Decoder
@@ -18,7 +17,14 @@ regex_const_hex = re.compile(r"^#0x[0-9a-fA-F]+$")
 
 # function stubs to implement or keep
 def split_and_filter(line):
-    pass
+    # remove leading/trailing spaces
+    line = line.strip()
+    # replace commas with spaces to unify separators
+    line = line.replace(',', ' ')
+    # split by whitespace
+    parts = line.split()
+    return parts
+# print(split_and_filter("MOV r0, #1, S"))  # ['MOV', 'r0', '#1', 'S']
 
 def check_branch(self, line, address, lines):
     pass
