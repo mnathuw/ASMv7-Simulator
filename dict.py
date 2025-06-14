@@ -260,8 +260,28 @@ def l_shift_32_c(a, shift_val, line):
 # result, carry = l_shift_32_c(a, shift_val, "example line")
 # print(result)  # output: ['00000000000000000000000000101000']
 
+# LSR (Logical Shift Right) 32-bit carry
+def r_shift_32_c(a, shift_val, line):
+    result = []
+    is_valid_a = isinstance(a, str) and len(a) == 32
+    is_valid_shift = isinstance(shift_val, int) and 0 <= shift_val <= 32
+    if not (is_valid_a and is_valid_shift):
+        print(f"Error: Invalid input for right shift operation in line '{line}'")
+        return None, None
+    carry = None
+
+    # no shifting is needed, carry is '0'
+    if shift_val == 0:
+        carry = '0'
+    else:
+        for i in range(shift_val):
+            carry = a[-1]
+            a = '0' + a[:-1]
+    result.append(a)
+    return result, carry
+
 # ASR (Arithmetic Shift Right) 32-bit carry
-def asr_shift_32(a, shift_val, line):
+def asr_shift_32_c(a, shift_val, line):
     result = []
     is_valid_a = isinstance(a, str) and len(a) == 32
     is_valid_shift = isinstance(shift_val, int) and 0 <= shift_val <= 32
