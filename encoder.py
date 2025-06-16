@@ -22,8 +22,8 @@ def Encoder_12bit(number):
         negative_binary_12 = negative_binary_str[2:].zfill(12)
         return negative_binary_12
 # print(Encoder_12bit(5))  # example usage, should print 0000 0000 0101
-# explain: to build full instruction like:
-# cond | 00 | I | opcode | S | Rn | Rd | operand2 (12 bits)
+# # explain: to build full instruction like:
+# # cond | 00 | I | opcode | S | Rn | Rd | operand2 (12 bits)
 
 def Encoder_5bit(number):
     if(number >= 0):

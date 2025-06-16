@@ -21,25 +21,23 @@ A Python-based simulator and disassembler for the ARMv7 32-bit ISA and 16-bit Th
 git clone https://github.com/mnathuw/ARMv7-Simulator.git
 cd ARMv7-Simulator
 ```
-2. Run test program
-```bash
-python assembly.py Demo/find_max_thumb.txt
-```
-3. [Optional] Launch the GUI (if this task has done)
+3. Launch the GUI (if this task has done)
 ```bash
 python ui.py
 ```
+
+
 ## Collaborators:
-[@AbiaShahbaz](https://github.com/AbiaShahbaz) [@mnathuw](https://github.com/mnathuw) [@Akshithb-77](https://github.com/Akshithb-77)
+[@AbiaShahbaz](https://github.com/AbiaShahbaz) [@mnathuw](https://github.com/mnathuw) [@Akshithb-77](https://github.com/Akshithb-77) [@roshni-2003](https://github.com/roshni-2003)
 
 ## To do:
 ✅ decoder.py
 ✅ encoder.py
 ✅ test1.txt
-🚧 assembly.py
-🚧 memory.py
-❎ data.py
-❎ dict.py
+✅ assembly.py
+✅ memory.py
+✅ data.py
+✅ dict.py
 
 ## License
 This project is open-source under the **MIT License**.
