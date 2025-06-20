@@ -21,6 +21,10 @@ A Python-based simulator and disassembler for the ARMv7 32-bit ISA and 16-bit Th
 git clone https://github.com/mnathuw/ARMv7-Simulator.git
 cd ARMv7-Simulator
 ```
+2. Install PyQt6
+```bash
+pip install PyQt6
+```
 3. Launch the GUI (if this task has done)
 ```bash
 python ui.py
@@ -32,7 +36,7 @@ python ui.py
 ## To do:
 ✅ decoder.py
 ✅ encoder.py
-✅ test1.txt
+✅ find_max_thumb.txt
 ✅ assembly.py
 ✅ memory.py
 ✅ data.py
