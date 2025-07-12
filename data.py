@@ -49,13 +49,28 @@ def parse_data(lines):
         elif VALID_DATA in lines and VALID_TEXT in lines:
             index_text = lines.index(VALID_TEXT)
             index_data = lines.index(VALID_DATA)
-            for i in range(index_text + 1, len(lines)):
-                if not lines[i].startswith('.'):
-                    original_list.append(lines[i])
-                else:
-                    break
+
+            # Extract text section (instructions)
+            if index_text < index_data:
+                # .text comes before .data
+                for i in range(index_text + 1, index_data):
+                    if not lines[i].startswith('.'):
+                        original_list.append(lines[i])
+                    else:
+                        break
+            else:
+                # .data comes before .text
+                for i in range(index_text + 1, len(lines)):
+                    if not lines[i].startswith('.'):
+                        original_list.append(lines[i])
+                    else:
+                        break
+
+            # Extract data section
             data_lines.append(lines[index_data])
-            for i in range(index_data + 1, len(lines)):
+            start_index = index_data + 1
+            end_index = index_text if index_data < index_text else len(lines)
+            for i in range(start_index, end_index):
                 if not lines[i].startswith('.'):
                     data_lines.append(lines[i])
                 else:
@@ -68,7 +83,13 @@ def process_data(data_lines, address):
     label_data = []
     data_address = []
     data_memory = []
-    address_data_base = int(address[-1], 16) + 4
+
+    # Check if address list is empty and provide default base address
+    if not address or len(address) == 0:
+        address_data_base = 0x1000  # Default data section base address
+    else:
+        address_data_base = int(address[-1], 16) + 4
+
     data_lines = [item for item in data_lines if item not in ["", None]]
     if len(data_lines) >= 2:
         data_lines = data_lines[1:]
@@ -111,9 +132,6 @@ def process_data(data_lines, address):
                             data_memory.append(num_str)
                     else:
                         for part in parts:
-                            address_data_base_str = format(address_data_base, '08x')
-                            if part == parts[0]:
-                                data_memory.append(address_data_base_str)
                             if regex_const.match(part):
                                 num = int(part)
                                 num_bin_str = Encoder(num)
@@ -127,6 +145,7 @@ def process_data(data_lines, address):
                                 temp.append(num_str)
                                 data_address.append(address_data_base_str)
                             address_data_base += 4
+                            address_data_base_str = format(address_data_base, '08x')
                 elif parts[0].endswith(':') and not result and VALID_SPACE_MEMORY.match(parts[1]):
                     parts = parts[2:]
                     address_data_base_str = format(address_data_base, '08x')
@@ -151,10 +170,17 @@ def process_data(data_lines, address):
                         try:
                             if regex_const.match(parts[0]):
                                 size_in_bytes = int(parts[0])
-                                fill_value = int(parts[1])
                             elif regex_const_hex.match(parts[0]):
-                                size_in_bytes = dict.twos_complement_to_signed(parts[0])
-                                fill_value = dict.twos_complement_to_signed(parts[1])
+                                size_in_bytes = int(parts[0], 16)
+                            else:
+                                raise ValueError("Invalid size format")
+
+                            if regex_const.match(parts[1]):
+                                fill_value = int(parts[1])
+                            elif regex_const_hex.match(parts[1]):
+                                fill_value = int(parts[1], 16)
+                            else:
+                                raise ValueError("Invalid fill value format")
                         except ValueError:
                             QtWidgets.QMessageBox.critical(None, "Error", ".space specifies non-absolute value")
                             return None, None, None
@@ -163,8 +189,13 @@ def process_data(data_lines, address):
                         else:
                             num_addr = size_in_bytes // 4 + 1
                         for i in range(num_addr):
-                            if fill_value >= -256 and fill_value <= 255:
-                                num_str = format(fill_value, '02x')
+                            if fill_value >= -128 and fill_value <= 255:
+                                # Handle negative values by converting to unsigned byte representation
+                                if fill_value < 0:
+                                    byte_value = fill_value & 0xFF
+                                else:
+                                    byte_value = fill_value
+                                num_str = format(byte_value, '02x')
                                 fill_value_str = num_str + num_str + num_str + num_str
                                 temp.append(fill_value_str)
                             else:
