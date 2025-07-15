@@ -41,6 +41,8 @@ python ui.py
 ✅ memory.py
 ✅ data.py
 ✅ dict.py
+✅ cache.py
+✅ benchmark.py
 
 ## License
 This project is open-source under the **MIT License**.
