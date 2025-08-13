@@ -1,9 +1,5 @@
 # memory load/store logic + initialization
 import re
-import math
-import logging
-from typing import Dict, Tuple, Optional, List
-from enum import Enum
 from dict import line_edit_dict
 import dict
 from encoder import Encoder_12bit, Encoder_5bit
@@ -47,7 +43,7 @@ def check_memory(self, line, address, lines, data_labels):
     condition = "al"
     memory = ""
     parts = split_and_filter(line)
-    if parts is None:
+    if parts == None:
          return memory
     if len(parts) < 3:
         return memory
@@ -60,7 +56,7 @@ def check_memory(self, line, address, lines, data_labels):
     if not regex_register.match(reg):
         return memory
 
-    if regex_register.match(reg) and (reg.lower() == "r13" or reg.lower() == "r15"):
+    if regex_register.match(reg) and reg.lower() == "r13" or reg.lower() == "r15":
         return memory
 
     if len(mem) > 4:
@@ -90,7 +86,6 @@ def check_memory(self, line, address, lines, data_labels):
             imm3 = "000"
             imm8 = "00000000"
             type = "00"
-            Immediate_Operand = "0"
             if SHIFT_REGEX.match(instruction_clean):
                 Rm = "0000"
                 Rn = "0000"
@@ -100,8 +95,8 @@ def check_memory(self, line, address, lines, data_labels):
                     else:
                         return memory
                     if instruction_clean.lower() == "rrx":
-                        type = dict.shift_memory_dict.get(instruction_clean.lower())
-                        Immediate_Operand = "1"
+                        type = dict.shift_memory_dict.get(mem[i + 1])
+                        Immediate_Operand == "1"
                     elif not instruction_clean.lower() == "rrx":
                         if regex_const.match(mem[1]):
                             clean_num = mem[1].lstrip('#')
@@ -219,7 +214,6 @@ def check_memory(self, line, address, lines, data_labels):
                         elif not mem[i + 1].lower() == "rrx" and i + 2 < len(mem):
                             if regex_const.match(mem[i + 2]):
                                 clean_num = mem[i + 2].lstrip('#')
-                                num = int(clean_num)
                                 num_bin = format(num, '05b')
                                 imm3 = num_bin[:3]
                                 imm2 = num_bin[3:]
@@ -620,7 +614,7 @@ def memory_branch(self, line, lines, address, labels):
     condition = "al"
     memory = ""
     parts = split_and_filter(line)
-    if parts is None or (not len(parts) == 2):
+    if parts == None or (not len(parts) == 2):
         return memory
     instruction = parts[0]
     match_condition = re.search(CONDITIONAL_MODIFIER_REGEX, instruction)
@@ -713,7 +707,7 @@ def memory_stacked(self, line, lines, address, labels):
                                     + registers["r6"] + registers["r5"] + registers["r4"]
                                     + registers["r3"] + registers["r2"] + registers["r1"] + registers["r0"])
             else:
-                return memory
+                return None, None, None, None
 
         if instruction.lower() == "pop":
             if mems[0].startswith("{") and mems[-1].endswith("}"):
@@ -736,409 +730,8 @@ def memory_stacked(self, line, lines, address, labels):
                                     + registers["r6"] + registers["r5"] + registers["r4"]
                                     + registers["r3"] + registers["r2"] + registers["r1"] + registers["r0"])
             else:
-                return memory
+                return None, None, None, None
         return memory
-
-
-# ============================================================================
-# MEMORY HIERARCHY IMPLEMENTATION
-# Merged from memory_hierarchy.py
-# ============================================================================
-
-class CacheType(Enum):
-    """Cache mapping types"""
-    DIRECT = "direct"
-    FULLY_ASSOCIATIVE = "fully_associative"
-    SET_ASSOCIATIVE = "set_associative"
-
-class CacheBlock:
-    """Represents a cache block/line"""
-
-    def __init__(self, block_size: int):
-        self.block_size = block_size
-        self.valid = False
-        self.dirty = False
-        self.tag = 0
-        self.data = bytearray(block_size)
-        self.lru_counter = 0  # For LRU replacement in fully associative
-
-    def is_hit(self, tag: int) -> bool:
-        """Check if this block contains the requested tag"""
-        return self.valid and self.tag == tag
-
-    def load_block(self, tag: int, address: int, main_memory: 'MainMemory'):
-        """Load a block from main memory"""
-        self.valid = True
-        self.dirty = False
-        self.tag = tag
-
-        # Calculate block start address
-        block_start = (address // self.block_size) * self.block_size
-
-        # Load data from main memory
-        self.data = main_memory.read_block(block_start, self.block_size)
-
-    def write_byte(self, offset: int, value: int):
-        """Write a byte to the block"""
-        if 0 <= offset < self.block_size:
-            self.data[offset] = value & 0xFF
-            self.dirty = True
-
-    def read_byte(self, offset: int) -> int:
-        """Read a byte from the block"""
-        if 0 <= offset < self.block_size:
-            return self.data[offset]
-        return 0
-
-class Cache:
-    """Generic cache implementation"""
-
-    def __init__(self, size: int, block_size: int, cache_type: CacheType, name: str, associativity: int = 1):
-        self.size = size
-        self.block_size = block_size
-        self.cache_type = cache_type
-        self.name = name
-
-        # Calculate cache parameters
-        self.num_blocks = size // block_size
-        if cache_type == CacheType.DIRECT:
-            self.num_sets = self.num_blocks
-            self.associativity = 1
-        elif cache_type == CacheType.FULLY_ASSOCIATIVE:
-            self.num_sets = 1
-            self.associativity = self.num_blocks
-        else:  # SET_ASSOCIATIVE
-            self.associativity = min(associativity, self.num_blocks)  # Ensure valid associativity
-            self.num_sets = self.num_blocks // self.associativity
-
-        # Initialize cache blocks
-        self.blocks = []
-        for i in range(self.num_sets):
-            set_blocks = [CacheBlock(block_size) for _ in range(self.associativity)]
-            self.blocks.append(set_blocks)
-
-        # Statistics
-        self.hits = 0
-        self.misses = 0
-        self.write_backs = 0
-        self.accesses = 0
-
-        # LRU tracking for fully associative
-        self.lru_counter = 0
-
-        self.logger = logging.getLogger(f"Cache.{name}")
-
-    def _get_cache_indices(self, address: int) -> Tuple[int, int, int]:
-        """Get set index, tag, and block offset from address"""
-        block_offset = address % self.block_size
-        block_address = address // self.block_size
-
-        if self.cache_type == CacheType.DIRECT:
-            set_index = block_address % self.num_sets
-            tag = block_address // self.num_sets
-        elif self.cache_type == CacheType.FULLY_ASSOCIATIVE:
-            set_index = 0
-            tag = block_address
-        else:  # SET_ASSOCIATIVE
-            set_index = block_address % self.num_sets
-            tag = block_address // self.num_sets
-
-        return set_index, tag, block_offset
-
-    def _find_block_in_set(self, set_blocks: List[CacheBlock], tag: int) -> Optional[CacheBlock]:
-        """Find a block with the given tag in a set"""
-        for block in set_blocks:
-            if block.is_hit(tag):
-                return block
-        return None
-
-    def _find_replacement_block(self, set_blocks: List[CacheBlock]) -> CacheBlock:
-        """Find a block to replace using LRU policy"""
-        # First try to find an invalid block
-        for block in set_blocks:
-            if not block.valid:
-                return block
-
-        # If all blocks are valid, use LRU
-        lru_block = min(set_blocks, key=lambda b: b.lru_counter)
-        return lru_block
-
-    def _update_lru(self, block: CacheBlock):
-        """Update LRU counter for the accessed block"""
-        self.lru_counter += 1
-        block.lru_counter = self.lru_counter
-
-    def access(self, address: int, is_write: bool, value: Optional[int] = None,
-               main_memory: 'MainMemory' = None, next_level: 'Cache' = None) -> bool:
-        """
-        Access the cache for read or write
-        Returns True if hit, False if miss
-        """
-        self.accesses += 1
-        set_index, tag, block_offset = self._get_cache_indices(address)
-        set_blocks = self.blocks[set_index]
-
-        # Look for the block in the set
-        block = self._find_block_in_set(set_blocks, tag)
-
-        if block is not None:
-            # Cache hit
-            self.hits += 1
-            self._update_lru(block)
-
-            if is_write and value is not None:
-                block.write_byte(block_offset, value)
-
-            self.logger.debug(f"HIT: {self.name} address=0x{address:08X}")
-            return True
-        else:
-            # Cache miss
-            self.misses += 1
-            self.logger.debug(f"MISS: {self.name} address=0x{address:08X}")
-
-            # Find a block to replace
-            replacement_block = self._find_replacement_block(set_blocks)
-
-            # Write back if dirty
-            if replacement_block.valid and replacement_block.dirty:
-                self.write_backs += 1
-                # Calculate original address of the dirty block
-                if self.cache_type == CacheType.DIRECT:
-                    original_tag = replacement_block.tag
-                    original_address = (original_tag * self.num_sets + set_index) * self.block_size
-                else:  # FULLY_ASSOCIATIVE
-                    original_address = replacement_block.tag * self.block_size
-
-                # Write back to next level or main memory
-                if next_level:
-                    self._write_back_to_next_level(replacement_block, original_address, next_level, main_memory)
-                elif main_memory:
-                    self._write_back_to_memory(replacement_block, original_address, main_memory)
-
-                self.logger.debug(f"WRITEBACK: {self.name} address=0x{original_address:08X}")
-
-            # Load new block
-            if next_level:
-                # Try to load from next level cache first
-                self._load_from_next_level(replacement_block, address, tag, next_level, main_memory)
-            elif main_memory:
-                # Load directly from main memory
-                replacement_block.load_block(tag, address, main_memory)
-
-            self._update_lru(replacement_block)
-
-            # Perform the requested operation
-            if is_write and value is not None:
-                replacement_block.write_byte(block_offset, value)
-
-            return False
-
-    def _write_back_to_next_level(self, block: CacheBlock, address: int,
-                                  next_level: 'Cache', main_memory: 'MainMemory'):
-        """Write back dirty block to next level cache"""
-        for i in range(block.block_size):
-            next_level.access(address + i, True, block.data[i], main_memory)
-
-    def _write_back_to_memory(self, block: CacheBlock, address: int, main_memory: 'MainMemory'):
-        """Write back dirty block to main memory"""
-        main_memory.write_block(address, block.data)
-
-    def _load_from_next_level(self, block: CacheBlock, address: int, tag: int,
-                              next_level: 'Cache', main_memory: 'MainMemory'):
-        """Load block from next level cache"""
-        # Load the entire block from next level
-        block_start = (address // self.block_size) * self.block_size
-
-        for i in range(self.block_size):
-            next_level.access(block_start + i, False, None, main_memory)
-
-        # Now load the block data (simplified - in reality would get data from next level)
-        block.load_block(tag, address, main_memory)
-
-    def read_byte(self, address: int, main_memory: 'MainMemory' = None,
-                  next_level: 'Cache' = None) -> int:
-        """Read a byte from cache"""
-        set_index, tag, block_offset = self._get_cache_indices(address)
-
-        # Access the cache (this handles miss/hit logic)
-        hit = self.access(address, False, None, main_memory, next_level)
-
-        # Get the block and return the byte
-        set_blocks = self.blocks[set_index]
-        block = self._find_block_in_set(set_blocks, tag)
-
-        if block:
-            return block.read_byte(block_offset)
-        return 0
-
-    def write_byte(self, address: int, value: int, main_memory: 'MainMemory' = None,
-                   next_level: 'Cache' = None):
-        """Write a byte to cache"""
-        self.access(address, True, value, main_memory, next_level)
-
-    def get_stats(self) -> Dict[str, int]:
-        """Get cache statistics"""
-        hit_rate = (self.hits / self.accesses) if self.accesses > 0 else 0
-        return {
-            'hits': self.hits,
-            'misses': self.misses,
-            'write_backs': self.write_backs,
-            'accesses': self.accesses,
-            'hit_rate': hit_rate
-        }
-
-    def reset_stats(self):
-        """Reset cache statistics"""
-        self.hits = 0
-        self.misses = 0
-        self.write_backs = 0
-        self.accesses = 0
-
-class MainMemory:
-    """Main memory simulation"""
-
-    def __init__(self, size: int = 1024 * 1024):  # 1MB default
-        self.size = size
-        self.data = bytearray(size)
-        self.accesses = 0
-
-    def read_byte(self, address: int) -> int:
-        """Read a byte from memory"""
-        self.accesses += 1
-        if 0 <= address < self.size:
-            return self.data[address]
-        return 0
-
-    def write_byte(self, address: int, value: int):
-        """Write a byte to memory"""
-        self.accesses += 1
-        if 0 <= address < self.size:
-            self.data[address] = value & 0xFF
-
-    def read_block(self, address: int, block_size: int) -> bytearray:
-        """Read a block of data from memory"""
-        end_addr = min(address + block_size, self.size)
-        return self.data[address:end_addr]
-
-    def write_block(self, address: int, data: bytearray):
-        """Write a block of data to memory"""
-        end_addr = min(address + len(data), self.size)
-        self.data[address:end_addr] = data[:end_addr - address]
-
-    def load_program(self, program_data: bytes, start_address: int = 0):
-        """Load program data into memory"""
-        end_addr = min(start_address + len(program_data), self.size)
-        self.data[start_address:end_addr] = program_data[:end_addr - start_address]
-
-class MemoryHierarchy:
-    """Complete memory hierarchy with L1, L2 caches and main memory"""
-
-    def __init__(self, l1_block_size: int = 16, l2_block_size: int = 32,
-                 l1_cache_type: str = 'direct', l1_associativity: int = 1,
-                 l1_size: int = 1024, l2_size: int = 16384):
-
-        # Create main memory
-        self.main_memory = MainMemory()
-
-        # Determine cache type and associativity
-        if l1_cache_type == 'direct':
-            cache_type = CacheType.DIRECT
-            associativity = 1
-        elif l1_cache_type == 'fully_associative':
-            cache_type = CacheType.FULLY_ASSOCIATIVE
-            associativity = l1_size // l1_block_size  # All blocks in one set
-        else:  # set_associative or any other value
-            cache_type = CacheType.SET_ASSOCIATIVE
-            associativity = l1_associativity
-
-        # Create L2 cache (unified, direct-mapped for simplicity)
-        self.l2_cache = Cache(
-            size=l2_size,
-            block_size=l2_block_size,
-            cache_type=CacheType.DIRECT,
-            name="L2"
-        )
-
-        # Create L1 caches (separate instruction and data)
-        self.l1_icache = Cache(
-            size=l1_size,
-            block_size=l1_block_size,
-            cache_type=cache_type,
-            name="L1I",
-            associativity=associativity
-        )
-
-        self.l1_dcache = Cache(
-            size=l1_size,
-            block_size=l1_block_size,
-            cache_type=cache_type,
-            name="L1D",
-            associativity=associativity
-        )
-
-        self.logger = logging.getLogger("MemoryHierarchy")
-
-    def read_instruction(self, address: int) -> int:
-        """Read instruction from memory hierarchy"""
-        return self.l1_icache.read_byte(address, self.main_memory, self.l2_cache)
-
-    def read_data(self, address: int) -> int:
-        """Read data from memory hierarchy"""
-        return self.l1_dcache.read_byte(address, self.main_memory, self.l2_cache)
-
-    def write_data(self, address: int, value: int):
-        """Write data to memory hierarchy"""
-        self.l1_dcache.write_byte(address, value, self.main_memory, self.l2_cache)
-
-    def read_word(self, address: int, is_instruction: bool = False) -> int:
-        """Read a 32-bit word from memory"""
-        word = 0
-        for i in range(4):
-            if is_instruction:
-                byte_val = self.read_instruction(address + i)
-            else:
-                byte_val = self.read_data(address + i)
-            word |= (byte_val << (i * 8))
-        return word
-
-    def write_word(self, address: int, value: int):
-        """Write a 32-bit word to memory"""
-        for i in range(4):
-            byte_val = (value >> (i * 8)) & 0xFF
-            self.write_data(address + i, byte_val)
-
-    def load_program(self, program_data: bytes, start_address: int = 0):
-        """Load program into main memory"""
-        self.main_memory.load_program(program_data, start_address)
-
-    def get_statistics(self) -> Dict[str, any]:
-        """Get comprehensive memory hierarchy statistics"""
-        l1i_stats = self.l1_icache.get_stats()
-        l1d_stats = self.l1_dcache.get_stats()
-        l2_stats = self.l2_cache.get_stats()
-
-        total_l1_misses = l1i_stats['misses'] + l1d_stats['misses']
-        total_write_backs = (l1i_stats['write_backs'] +
-                            l1d_stats['write_backs'] +
-                            l2_stats['write_backs'])
-
-        # Calculate cost function
-        cost = 0.5 * total_l1_misses + l2_stats['misses'] + total_write_backs
-
-        return {
-            'l1_icache': l1i_stats,
-            'l1_dcache': l1d_stats,
-            'l2_cache': l2_stats,
-            'total_l1_misses': total_l1_misses,
-            'total_write_backs': total_write_backs,
-            'cost': cost,
-            'memory_accesses': self.main_memory.accesses
-        }
-
-    def reset_statistics(self):
-        """Reset all cache statistics"""
-        self.l1_icache.reset_stats()
-        self.l1_dcache.reset_stats()
-        self.l2_cache.reset_stats()
-        self.main_memory.accesses = 0
+    else:
+        return memory
 

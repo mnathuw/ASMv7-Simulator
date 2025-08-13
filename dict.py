@@ -4,95 +4,6 @@ from decoder import Decoder
 from encoder import Encoder
 import string
 
-# Configuration Classes
-class SimulatorConfig:
-    """Configuration class for the simulator"""
-
-    def __init__(self, l1_block_size=16, l2_block_size=32, l1_cache_type='direct',
-                 max_instructions=10000):
-        self.l1_block_size = l1_block_size
-        self.l2_block_size = l2_block_size
-        self.l1_cache_type = l1_cache_type
-        self.max_instructions = max_instructions
-
-        # Cache sizes (in bytes)
-        self.l1_cache_size = 1024  # 1KB
-        self.l2_cache_size = 16384  # 16KB
-
-        # Memory addressing
-        self.memory_size = 1024 * 1024  # 1MB main memory
-        self.word_size = 4  # 32-bit words
-
-        # Validate configuration
-        self._validate()
-
-    def _validate(self):
-        """Validate configuration parameters"""
-        if self.l1_block_size not in [4, 8, 16, 32]:
-            raise ValueError(f"Invalid L1 block size: {self.l1_block_size}")
-
-        if self.l2_block_size not in [16, 32, 64]:
-            raise ValueError(f"Invalid L2 block size: {self.l2_block_size}")
-
-        if self.l1_cache_type not in ['direct', 'fully_associative']:
-            raise ValueError(f"Invalid L1 cache type: {self.l1_cache_type}")
-
-        # Ensure L2 block size >= L1 block size
-        if self.l2_block_size < self.l1_block_size:
-            raise ValueError("L2 block size must be >= L1 block size")
-
-    def get_l1_sets(self):
-        """Calculate number of sets in L1 cache"""
-        if self.l1_cache_type == 'direct':
-            return self.l1_cache_size // self.l1_block_size
-        else:  # fully associative
-            return 1
-
-    def get_l2_sets(self):
-        """Calculate number of sets in L2 cache"""
-        return self.l2_cache_size // self.l2_block_size
-
-    def __str__(self):
-        return (f"SimulatorConfig(L1: {self.l1_block_size}B {self.l1_cache_type}, "
-                f"L2: {self.l2_block_size}B direct)")
-
-# Predefined configurations for benchmarking
-BENCHMARK_CONFIGS = [
-    # L1 block size variations with direct mapping
-    SimulatorConfig(l1_block_size=4, l2_block_size=16, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=4, l2_block_size=32, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=4, l2_block_size=64, l1_cache_type='direct'),
-
-    SimulatorConfig(l1_block_size=8, l2_block_size=16, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=8, l2_block_size=32, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=8, l2_block_size=64, l1_cache_type='direct'),
-
-    SimulatorConfig(l1_block_size=16, l2_block_size=16, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=16, l2_block_size=32, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=16, l2_block_size=64, l1_cache_type='direct'),
-
-    SimulatorConfig(l1_block_size=32, l2_block_size=32, l1_cache_type='direct'),
-    SimulatorConfig(l1_block_size=32, l2_block_size=64, l1_cache_type='direct'),
-
-    # L1 block size variations with fully associative
-    SimulatorConfig(l1_block_size=4, l2_block_size=16, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=4, l2_block_size=32, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=4, l2_block_size=64, l1_cache_type='fully_associative'),
-
-    SimulatorConfig(l1_block_size=8, l2_block_size=16, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=8, l2_block_size=32, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=8, l2_block_size=64, l1_cache_type='fully_associative'),
-
-    SimulatorConfig(l1_block_size=16, l2_block_size=16, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=16, l2_block_size=32, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=16, l2_block_size=64, l1_cache_type='fully_associative'),
-
-    SimulatorConfig(l1_block_size=32, l2_block_size=32, l1_cache_type='fully_associative'),
-    SimulatorConfig(l1_block_size=32, l2_block_size=64, l1_cache_type='fully_associative'),
-]
-
-# Lookup Tables and Dictionaries
-
 line_edit_dict = {
     "r0": None,
     "r1": None,
@@ -165,7 +76,7 @@ condition_memory_dict = {
     "eq": '0000',
     "ne": '0001',
     "cs": '0010', "hs": '0010',
-    "cc": '0011', "lo": '0011',
+    "cc": '0010', "lo": '0011',
     "mi": '0100',
     "pl": '0101',
     "vs": '0110',
@@ -285,20 +196,11 @@ def parse_labels(lines):
 
 # check if the condition is met based on the flags
 def check_condition(condition):
-    # get flag values - handle case where widgets aren't initialized
-    n_widget = condition_dict.get("n")
-    z_widget = condition_dict.get("z")
-    c_widget = condition_dict.get("c")
-    v_widget = condition_dict.get("v")
-
-    # If widgets aren't available, use default values (all flags 0)
-    if n_widget is None or z_widget is None or c_widget is None or v_widget is None:
-        n, z, c, v = "0", "0", "0", "0"
-    else:
-        n = n_widget.text()
-        z = z_widget.text()
-        c = c_widget.text()
-        v = v_widget.text()
+    # get flag values
+    n = condition_dict.get("n").text()
+    z = condition_dict.get("z").text()
+    c = condition_dict.get("c").text()
+    v = condition_dict.get("v").text()
 
     condition = condition.lower()
 
@@ -880,13 +782,8 @@ def find_one_memory_in_halfword(model_byte, addr_input):
 
 # replace_one_memory function to update a specific memory address
 def replace_one_memory(model, addr_input, mem_input):
-    if not addr_input or not mem_input:
-        return
-    try:
-        found = False
-        search_value = twos_complement_to_signed(addr_input)
-    except (ValueError, TypeError):
-        return
+    found = False
+    search_value  = twos_complement_to_signed(addr_input)
     max_row = model.rowCount() - 1
     for row in range(1, model.rowCount()):
         item_addr = model.item(row, 0)

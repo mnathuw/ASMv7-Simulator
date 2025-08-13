@@ -1,19 +1,12 @@
 # GUI interface for the application
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtGui import QFont
 import sys
-import os
-import struct
-import random
 import assembly
 import data
 from dict import line_edit_dict, condition_dict, parse_labels, replace_memory, replace_memory_byte
 import memory
 from encoder import Encoder
 from decoder import Decoder
-from dict import SimulatorConfig
-from memory import MemoryHierarchy
-
 
 class RunCode(QtCore.QObject):
     finished = QtCore.pyqtSignal()
@@ -25,9 +18,8 @@ class RunCode(QtCore.QObject):
         self._running = True
         while self._running:
             self.progress.emit()
-            # Use proper timer instead of busy-wait loop
-            import time
-            time.sleep(0.1)  # 100ms delay - much more efficient than 500k iterations
+            for _ in range(500000):
+                pass
         self.finished.emit()
     def stop_run_code(self):
         self._running = False
@@ -113,18 +105,6 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1080, 720)
-
-        # Add menu bar
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1080, 22))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-
-        # Status bar
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -153,27 +133,27 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.tabWidget.setFont(font)
         self.tabWidget.setObjectName("tabWidget")
-        self.tab_editor = QtWidgets.QWidget()
-        self.tab_editor.setObjectName("tab_editor")
-        self.CompileBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.tab_1 = QtWidgets.QWidget()
+        self.tab_1.setObjectName("tab_1")
+        self.CompileBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.CompileBtn.setGeometry(QtCore.QRect(270, 10, 111, 51))
         self.CompileBtn.setObjectName("CompileBtn")
-        self.QuitBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.QuitBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.QuitBtn.setGeometry(QtCore.QRect(270, 190, 111, 51))
         self.QuitBtn.setObjectName("QuitBtn")
-        self.StepBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.StepBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.StepBtn.setGeometry(QtCore.QRect(270, 130, 111, 51))
         self.StepBtn.setObjectName("StepBtn")
-        self.ImportBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.ImportBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.ImportBtn.setGeometry(QtCore.QRect(140, 10, 111, 51))
         self.ImportBtn.setObjectName("ImportBtn")
-        self.ExportBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.ExportBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.ExportBtn.setGeometry(QtCore.QRect(10, 10, 111, 51))
         self.ExportBtn.setObjectName("ExportBtn")
-        self.RunBtn = QtWidgets.QPushButton(parent=self.tab_editor)
+        self.RunBtn = QtWidgets.QPushButton(parent=self.tab_1)
         self.RunBtn.setGeometry(QtCore.QRect(270, 70, 111, 51))
         self.RunBtn.setObjectName("RunBtn")
-        self.stackedCodeWidget = QtWidgets.QStackedWidget(parent=self.tab_editor)
+        self.stackedCodeWidget = QtWidgets.QStackedWidget(parent=self.tab_1)
         self.stackedCodeWidget.setGeometry(QtCore.QRect(400, 0, 631, 601))
         self.stackedCodeWidget.setObjectName("stackedCodeWidget")
         self.pageCode_1 = QtWidgets.QWidget()
@@ -198,7 +178,7 @@ class Ui_MainWindow(object):
         self.ImportBtn.clicked.connect(self.Import)
         self.ExportBtn.clicked.connect(self.Export)
 
-        self.formLayoutWidget = QtWidgets.QWidget(parent=self.tab_editor)
+        self.formLayoutWidget = QtWidgets.QWidget(parent=self.tab_1)
         self.formLayoutWidget.setGeometry(QtCore.QRect(10, 80, 201, 511))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
         self.Layout_registers = QtWidgets.QFormLayout(self.formLayoutWidget)
@@ -334,7 +314,7 @@ class Ui_MainWindow(object):
         line_edit_dict["sp"] = self.sp_LineEdit
         line_edit_dict["pc"] = self.pc_LineEdit
 
-        self.formLayoutWidget_2 = QtWidgets.QWidget(parent=self.tab_editor)
+        self.formLayoutWidget_2 = QtWidgets.QWidget(parent=self.tab_1)
         self.formLayoutWidget_2.setGeometry(QtCore.QRect(240, 300, 160, 138))
         self.formLayoutWidget_2.setObjectName("formLayoutWidget_2")
         self.Layout_condition = QtWidgets.QFormLayout(self.formLayoutWidget_2)
@@ -374,7 +354,7 @@ class Ui_MainWindow(object):
         condition_dict["c"] = self.c_LineEdit
         condition_dict["v"] = self.v_LineEdit
 
-        self.formLayoutWidget_4 = QtWidgets.QWidget(parent=self.tab_editor)
+        self.formLayoutWidget_4 = QtWidgets.QWidget(parent=self.tab_1)
         self.formLayoutWidget_4.setGeometry(QtCore.QRect(240, 470, 161, 80))
         self.formLayoutWidget_4.setObjectName("formLayoutWidget_4")
         self.formLayout_2 = QtWidgets.QFormLayout(self.formLayoutWidget_4)
@@ -395,7 +375,7 @@ class Ui_MainWindow(object):
         self.spsr_LineEdit.setObjectName("spsr_LineEdit")
         self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spsr_LineEdit)
 
-        self.tabWidget.addTab(self.tab_editor, "")
+        self.tabWidget.addTab(self.tab_1, "")
         self.tab_memory = QtWidgets.QWidget()
         self.tab_memory.setObjectName("tab_memory")
         self.groupBox = QtWidgets.QGroupBox(parent=self.tab_memory)
@@ -455,152 +435,7 @@ class Ui_MainWindow(object):
         self.Addrr_Mem_View.verticalHeader().setVisible(False)
         self.Addrr_Mem_View.horizontalHeader().setVisible(False)
         self.Addrr_Mem_View.verticalScrollBar().valueChanged.connect(self.on_scroll)
-        # self.tabWidget.addTab(self.tab_memory, "")  # Hidden Memory tab
-
-        # Add Cache Tab
-        self.tab_cache = QtWidgets.QWidget()
-        self.tab_cache.setObjectName("tab_cache")
-
-        # Cache Configuration Group
-        self.cache_config_group = QtWidgets.QGroupBox(parent=self.tab_cache)
-        self.cache_config_group.setGeometry(QtCore.QRect(10, 10, 340, 200))
-        self.cache_config_group.setTitle("Cache Configuration")
-        self.cache_config_group.setObjectName("cache_config_group")
-
-        # Cache Size
-        self.cache_size_label = QtWidgets.QLabel(parent=self.cache_config_group)
-        self.cache_size_label.setGeometry(QtCore.QRect(10, 30, 100, 25))
-        self.cache_size_label.setText("Cache Size:")
-        self.cache_size_combo = QtWidgets.QComboBox(parent=self.cache_config_group)
-        self.cache_size_combo.setGeometry(QtCore.QRect(120, 30, 100, 25))
-        self.cache_size_combo.addItems(["1KB", "2KB", "4KB", "8KB", "16KB", "32KB"])
-        self.cache_size_combo.setCurrentText("1KB")
-
-        # Block Size
-        self.block_size_label = QtWidgets.QLabel(parent=self.cache_config_group)
-        self.block_size_label.setGeometry(QtCore.QRect(10, 60, 100, 25))
-        self.block_size_label.setText("Block Size:")
-        self.block_size_combo = QtWidgets.QComboBox(parent=self.cache_config_group)
-        self.block_size_combo.setGeometry(QtCore.QRect(120, 60, 100, 25))
-        self.block_size_combo.addItems(["4B", "8B", "16B", "32B"])
-        self.block_size_combo.setCurrentText("16B")
-
-        # Associativity
-        self.associativity_label = QtWidgets.QLabel(parent=self.cache_config_group)
-        self.associativity_label.setGeometry(QtCore.QRect(10, 90, 100, 25))
-        self.associativity_label.setText("Associativity:")
-        self.associativity_combo = QtWidgets.QComboBox(parent=self.cache_config_group)
-        self.associativity_combo.setGeometry(QtCore.QRect(120, 90, 100, 25))
-        self.associativity_combo.addItems(["1", "2", "4", "8"])
-        self.associativity_combo.setCurrentText("2")
-
-        # Cache Policy
-        self.cache_policy_label = QtWidgets.QLabel(parent=self.cache_config_group)
-        self.cache_policy_label.setGeometry(QtCore.QRect(10, 120, 100, 25))
-        self.cache_policy_label.setText("Replacement:")
-        self.cache_policy_combo = QtWidgets.QComboBox(parent=self.cache_config_group)
-        self.cache_policy_combo.setGeometry(QtCore.QRect(120, 120, 100, 25))
-        self.cache_policy_combo.addItems(["LRU", "FIFO", "Random"])
-        self.cache_policy_combo.setCurrentText("LRU")
-
-        # Apply Configuration Button
-        self.apply_cache_config_btn = QtWidgets.QPushButton(parent=self.cache_config_group)
-        self.apply_cache_config_btn.setGeometry(QtCore.QRect(120, 160, 100, 30))
-        self.apply_cache_config_btn.setText("Configure")
-
-        # Import File Button
-        self.import_file_btn = QtWidgets.QPushButton(parent=self.cache_config_group)
-        self.import_file_btn.setGeometry(QtCore.QRect(10, 160, 100, 30))
-        self.import_file_btn.setText("Import")
-        self.import_file_btn.setToolTip("Import binary files from Demo folder to test cache performance")
-
-        # Run Benchmark Button
-        self.run_benchmark_btn = QtWidgets.QPushButton(parent=self.cache_config_group)
-        self.run_benchmark_btn.setGeometry(QtCore.QRect(230, 160, 100, 30))
-        self.run_benchmark_btn.setText("Analyze")
-        self.run_benchmark_btn.setToolTip("Run automated benchmark testing across all configurations")
-
-        # Cache Statistics Group
-        self.cache_stats_group = QtWidgets.QGroupBox(parent=self.tab_cache)
-        self.cache_stats_group.setGeometry(QtCore.QRect(360, 10, 250, 200))
-        self.cache_stats_group.setTitle("Cache Statistics")
-        self.cache_stats_group.setObjectName("cache_stats_group")
-
-        # Statistics Layout
-        self.stats_layout = QtWidgets.QFormLayout(self.cache_stats_group)
-        self.stats_layout.setContentsMargins(10, 20, 10, 10)
-
-        # Hit Rate
-        self.hit_rate_label = QtWidgets.QLabel("Hit Rate:")
-        self.hit_rate_value = QtWidgets.QLabel("0.00%")
-        self.hit_rate_value.setStyleSheet("font-weight: bold; color: green;")
-        self.stats_layout.addRow(self.hit_rate_label, self.hit_rate_value)
-
-        # Miss Rate
-        self.miss_rate_label = QtWidgets.QLabel("Miss Rate:")
-        self.miss_rate_value = QtWidgets.QLabel("0.00%")
-        self.miss_rate_value.setStyleSheet("font-weight: bold; color: red;")
-        self.stats_layout.addRow(self.miss_rate_label, self.miss_rate_value)
-
-        # Total Accesses
-        self.total_accesses_label = QtWidgets.QLabel("Total Accesses:")
-        self.total_accesses_value = QtWidgets.QLabel("0")
-        self.stats_layout.addRow(self.total_accesses_label, self.total_accesses_value)
-
-        # Cache Hits
-        self.cache_hits_label = QtWidgets.QLabel("Cache Hits:")
-        self.cache_hits_value = QtWidgets.QLabel("0")
-        self.stats_layout.addRow(self.cache_hits_label, self.cache_hits_value)
-
-        # Cache Misses
-        self.cache_misses_label = QtWidgets.QLabel("Cache Misses:")
-        self.cache_misses_value = QtWidgets.QLabel("0")
-        self.stats_layout.addRow(self.cache_misses_label, self.cache_misses_value)
-
-        # Reset Statistics Button
-        self.reset_stats_btn = QtWidgets.QPushButton("Reset")
-        self.reset_stats_btn.setGeometry(QtCore.QRect(620, 180, 120, 30))
-        self.reset_stats_btn.setParent(self.tab_cache)
-
-        # Cache Contents Table
-        self.cache_contents_label = QtWidgets.QLabel(parent=self.tab_cache)
-        self.cache_contents_label.setGeometry(QtCore.QRect(10, 220, 200, 25))
-        self.cache_contents_label.setText("Cache Contents:")
-        self.cache_contents_label.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Weight.Bold))
-
-        self.cache_table = QtWidgets.QTableView(parent=self.tab_cache)
-        self.cache_table.setGeometry(QtCore.QRect(10, 250, 1020, 340))
-        self.cache_table.setObjectName("cache_table")
-        self.cache_table.verticalHeader().setVisible(True)
-        self.cache_table.horizontalHeader().setVisible(True)
-
-        # Initialize cache table model
-        self.cache_model = QtGui.QStandardItemModel(0, 7)
-        self.cache_model.setHorizontalHeaderLabels(["Cache", "Set", "Way", "Valid", "Tag", "Data", "LRU"])
-        self.cache_table.setModel(self.cache_model)
-
-        # Set column widths
-        self.cache_table.setColumnWidth(0, 60)   # Cache
-        self.cache_table.setColumnWidth(1, 60)   # Set
-        self.cache_table.setColumnWidth(2, 60)   # Way
-        self.cache_table.setColumnWidth(3, 60)   # Valid
-        self.cache_table.setColumnWidth(4, 120)  # Tag
-        self.cache_table.setColumnWidth(5, 600)  # Data
-        self.cache_table.setColumnWidth(6, 60)   # LRU
-
-        # Add the cache tab to the tab widget
-        self.tabWidget.addTab(self.tab_cache, "")
-
-        # Connect cache configuration signals
-        self.apply_cache_config_btn.clicked.connect(self.apply_cache_configuration)
-        self.import_file_btn.clicked.connect(self.import_demo_file)
-        self.reset_stats_btn.clicked.connect(self.reset_cache_statistics)
-        self.run_benchmark_btn.clicked.connect(self.run_automated_benchmark)
-
-        # Initialize cache simulator
-        self.cache_simulator = None
-        self.init_cache_simulator()
-
+        self.tabWidget.addTab(self.tab_memory, "")
         self.gridLayout.addWidget(self.tabWidget, 1, 0, 1, 1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_2.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -615,9 +450,6 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-        # Connect tab change signal to update cache when cache tab is selected
-        self.tabWidget.currentChanged.connect(self.on_tab_changed)
 
         self.model_code = QtGui.QStandardItemModel(0, 3)
         self.CodeView.setModel(self.model_code)
@@ -668,16 +500,6 @@ class Ui_MainWindow(object):
         self.load_mem_x4_byte()
         self.load_mem_x8_byte()
         self.check_mem_per_row_option()
-
-        # Initialize simulator state variables
-        self.address = []
-        self.memory_current_line = []
-        self.pc = 0
-        self.instruction_size = 4
-        self.data_labels = []
-        self.current_line_index = 0
-        self.stacked = []
-        self.have_compile = False
 
         delegate = CustomCheckBoxDelegate(self.CodeView)
         self.CodeView.setItemDelegateForColumn(0, delegate)
@@ -923,55 +745,43 @@ class Ui_MainWindow(object):
     def highlight_search_memory(self, model):
         search_text = self.Address_search_LineEdit.text()
         if search_text:
-            try:
-                # Clean the search text - remove spaces and validate it's hex
-                search_text_clean = search_text.strip().replace(" ", "")
-
-                # Check if it's a valid hex string (only hex digits)
-                if not all(c in '0123456789abcdefABCDEF' for c in search_text_clean):
-                    # If not valid hex, just return without error
-                    return
-
-                # Convert to integer
-                search_value = int(search_text_clean, 16)
-                found = False
-
+            found = False
+            search_value  = int(search_text, 16)
+            while not found and self.current_index > 0:
+                max_row = model.rowCount() - 1
                 for row in range(1, model.rowCount()):
                     item_addr = model.item(row, 0)
+                    if row != max_row:
+                        item_addr_next = model.item(row + 1, 0)
+                        addr_next = item_addr_next.text()
                     if item_addr:
-                        addr_text = item_addr.text()
-                        try:
-                            addr_value = int(addr_text, 16)
-                            if search_value == addr_value:
-                                # Highlight the memory value column
-                                if model.item(row, 1):
-                                    model.item(row, 1).setBackground(QtGui.QColor("yellow"))
-                                # Scroll to the found item
-                                self.Addrr_Mem_View.scrollTo(model.index(row, 1))
-                                found = True
-                                break
-                            elif row < model.rowCount() - 1:
-                                # Check if address falls between this row and next
-                                next_item_addr = model.item(row + 1, 0)
-                                if next_item_addr:
-                                    next_addr_text = next_item_addr.text()
-                                    try:
-                                        next_addr_value = int(next_addr_text, 16)
-                                        if addr_value <= search_value < next_addr_value:
-                                            # Address falls in this range, highlight this row
-                                            if model.item(row, 1):
-                                                model.item(row, 1).setBackground(QtGui.QColor("yellow"))
-                                            self.Addrr_Mem_View.scrollTo(model.index(row, 1))
-                                            found = True
-                                            break
-                                    except ValueError:
-                                        continue
-                        except ValueError:
-                            continue
-
-            except ValueError:
-                # Invalid hex input, just ignore silently
-                pass
+                        addr = item_addr.text()
+                    if search_value == int(addr, 16):
+                        model.item(row, 1).setBackground(QtGui.QColor("yellow"))
+                        self.Addrr_Mem_View.scrollTo(model.index(row, 1))
+                        break
+                    if addr_next and search_value > int(addr, 16) and search_value < int(addr_next, 16):
+                        num = int((search_value - int(addr, 16)) / 4) + 1
+                        model.item(row, num).setBackground(QtGui.QColor("yellow"))
+                        self.Addrr_Mem_View.scrollTo(model.index(row, num))
+                        break
+                    if not addr_next and search_value > int(addr, 16):
+                        num = int((search_value - int(addr, 16)) / 4) + 1
+                        model.item(row, num).setBackground(QtGui.QColor("yellow"))
+                        self.Addrr_Mem_View.scrollTo(model.index(row, num))
+                        break
+                if not found:
+                    last_item_value = int(model.item(model.rowCount() - 1, 0).text(), 16)
+                    if search_value < last_item_value:
+                        break
+                    self.load_mem_x1()
+                    self.load_mem_x2()
+                    self.load_mem_x4()
+                    self.load_mem_x8()
+                    self.load_mem_x1_byte()
+                    self.load_mem_x2_byte()
+                    self.load_mem_x4_byte()
+                    self.load_mem_x8_byte()
 
     def check_code_assembly(self):
         text = self.CodeEditText.toPlainText()
@@ -1006,26 +816,9 @@ class Ui_MainWindow(object):
                 memory_line_stacked = format(int_memory_line_stacked, '08x')
                 self.memory_current_line.append(memory_line_stacked)
             if not memory_line and not memory_line_branch and not memory_line_stacked:
-                # If no memory processing function handled the line, add a placeholder
-                print(f"Warning: Line '{line}' could not be processed, adding placeholder memory")
-                self.memory_current_line.append("00000000")
+                print(line)
         if data_memory:
             self.memory_current_line.extend(data_memory)
-
-        # Ensure address and memory arrays are synchronized
-        # If there's a mismatch, add placeholder memory entries for missing entries
-        address_count = len(self.address)
-        memory_count = len(self.memory_current_line)
-        if address_count > memory_count:
-            missing_count = address_count - memory_count
-            print(f"Warning: Adding {missing_count} placeholder memory entries to match {address_count} addresses")
-            for i in range(missing_count):
-                self.memory_current_line.append("00000000")
-        elif memory_count > address_count:
-            # This shouldn't happen, but if it does, truncate memory to match addresses
-            print(f"Warning: Truncating {memory_count - address_count} excess memory entries")
-            self.memory_current_line = self.memory_current_line[:address_count]
-
         if len(self.address) != len(self.memory_current_line):
             QtWidgets.QMessageBox.critical(None, "Error", "Error memory")
             self.Quit()
@@ -1104,27 +897,8 @@ class Ui_MainWindow(object):
                 int_memory_line_stacked = Decoder(memory_line_stacked)
                 memory_line_stacked = format(int_memory_line_stacked, '08x')
                 self.memory_current_line.append(memory_line_stacked)
-            if not memory_line and not memory_line_branch and not memory_line_stacked:
-                # If no memory processing function handled the line, add a placeholder
-                print(f"Warning: Line '{line}' could not be processed, adding placeholder memory")
-                self.memory_current_line.append("00000000")
         if data_memory:
             self.memory_current_line.extend(data_memory)
-
-        # Ensure address and memory arrays are synchronized
-        # If there's a mismatch, add placeholder memory entries for missing entries
-        address_count = len(self.address)
-        memory_count = len(self.memory_current_line)
-        if address_count > memory_count:
-            missing_count = address_count - memory_count
-            print(f"Warning: Adding {missing_count} placeholder memory entries to match {address_count} addresses")
-            for i in range(missing_count):
-                self.memory_current_line.append("00000000")
-        elif memory_count > address_count:
-            # This shouldn't happen, but if it does, truncate memory to match addresses
-            print(f"Warning: Truncating {memory_count - address_count} excess memory entries")
-            self.memory_current_line = self.memory_current_line[:address_count]
-
         replace_memory(self.model, self.address, self.memory_current_line)
         replace_memory(self.model_2, self.address, self.memory_current_line)
         replace_memory(self.model_4, self.address, self.memory_current_line)
@@ -1134,12 +908,12 @@ class Ui_MainWindow(object):
         replace_memory_byte(self.model_4_byte, self.address, self.memory_current_line)
         replace_memory_byte(self.model_8_byte, self.address, self.memory_current_line)
         mapping_addr_mem = {key: value for key, value in zip(self.address, self.memory_current_line)}
-        address_index = 0
+        temp = 0
         for i in range(len(lines)):
             line = lines[i]
             if not line.endswith(':'):
-                addr_text = self.address[address_index]
-                address_index += 1
+                addr_text = self.address[temp]
+                temp += 1
                 bkpt = QtGui.QStandardItem()
                 bkpt.setCheckable(True)
                 bkpt.setCheckState(QtCore.Qt.CheckState.Unchecked)
@@ -1276,10 +1050,25 @@ class Ui_MainWindow(object):
         self.spsr_LineEdit.setStyleSheet("font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
         self.ImportBtn.setText(_translate("MainWindow", "Import"))
         self.ExportBtn.setText(_translate("MainWindow", "Export"))
-        self.label.setText(_translate("MainWindow", "Group 32: ARMv7 Simulator 💻"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_editor), _translate("MainWindow", "Editor"))
-        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_memory), _translate("MainWindow", "Memory"))  # Hidden Memory tab
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_cache), _translate("MainWindow", "Cache"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("MainWindow", "Editor"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_memory), _translate("MainWindow", "Memory"))
+        self.Address_search_LineEdit.setText(_translate("MainWindow", "00000000"))
+        self.GotoAddr.setText(_translate("MainWindow", "Go to Address"))
+        self.groupBox.setTitle(_translate("MainWindow", "Option"))
+        self.label_size_memory.setText(_translate("MainWindow", "Size\n"
+"Memory:"))
+        self.label_memory_words_per_row.setText(_translate("MainWindow", "Memory\n"
+"words\n"
+"per row:"))
+        self.comboBox_memory_words_per_row.setItemText(0, _translate("MainWindow", "1"))
+        self.comboBox_memory_words_per_row.setItemText(1, _translate("MainWindow", "2"))
+        self.comboBox_memory_words_per_row.setItemText(2, _translate("MainWindow", "4"))
+        self.comboBox_memory_words_per_row.setItemText(3, _translate("MainWindow", "8"))
+        self.comboBox_memory_words_per_row.setCurrentIndex(3)
+        self.comboBox_size_memory.setItemText(0, _translate("MainWindow", "Word"))
+        self.comboBox_size_memory.setItemText(1, _translate("MainWindow", "Byte"))
+        self.comboBox_size_memory.setCurrentIndex(0)
+        self.label.setText(_translate("MainWindow", "ARMv7-M instruction set simulator"))
 
     pc = 0
     instruction_size = 4
@@ -1299,10 +1088,6 @@ class Ui_MainWindow(object):
         lines = [' '.join(item.split()) for item in lines if item.strip()]
         mapping = {key: value for key, value in zip(self.address, lines)}
         self.code_breakpoint()
-
-        # Initialize variables to avoid UnboundLocalError
-        reg, arguments, label, flag_B, flag_N, flag_Z, flag_C, flag_V, flag_T = [], [], "", 0, "0", "0", "0", "0", False
-
         if self.current_line_index < len(lines):
             if len(self.address) == None or self.current_line_index >= len(self.address):
                 return
@@ -1317,78 +1102,55 @@ class Ui_MainWindow(object):
             self.pc_LineEdit.setText(pc_binary)
             if line.strip():
                 reg, arguments, label, flag_B, flag_N, flag_Z, flag_C, flag_V, flag_T = assembly.check_assembly_line(self, lines, line, self.address, self.memory_current_line, self.data_labels
-                                                                                                  , self.model, self.model_2, self.model_4, self.model_8
-                                                                                                  , self.model_byte, self.model_2_byte, self.model_4_byte, self.model_8_byte
-                                                                                                  , self.stacked)
-
-            # Simulate cache access for memory operations
-            if any(op in line.lower() for op in ['ldr', 'str', 'ldm', 'stm']):
-                if self.current_line_index > 0 and self.current_line_index - 1 < len(self.address):
-                    pc_addr = self.address[self.current_line_index - 1]
-                    access_type = "read" if any(op in line.lower() for op in ['ldr', 'ldm']) else "write"
-                    self.simulate_memory_access(pc_addr, access_type)
-
-            # Simulate instruction fetch for all instructions (cache access)
-            if self.current_line_index > 0 and self.current_line_index - 1 < len(self.address):
-                pc_addr = self.address[self.current_line_index - 1]
-                self.simulate_memory_access(pc_addr, "instruction_fetch")
-
-            self.current_line_index += 1
-        if flag_B == 2:
-            self.stacked = []
-        if label in labels:
-            position = lines.index(labels[label][0])
-            self.current_line_index = position
-        elif label in lines:
-            position = lines.index(label)
-            self.current_line_index = position
-        if self.current_line_index >= len(lines) or self.current_line_index >= len(self.address):
-            self.worker.stop_run_code()
-            self.reset_highlight()
-            for row in range(1, self.model_code.rowCount()):
-                item = self.model_code.item(row, 3)
-                if item != None:
-                    item.setBackground(QtGui.QColor('darkGray'))
-            # Don't return here - let the register and flag updates happen below
-        else:
-            pc_binary = self.address[self.current_line_index]
-            self.highlight_line(pc_binary)
-        if flag_T:
-            # Thumb mode - currently not implemented
-            return
-        elif arguments and len(reg) == len(arguments):
-            for i in range(len(arguments)):
-                reg_name = reg[i]
-                line_edit = line_edit_dict.get(reg_name)
-                if line_edit is not None:  # Check if the widget exists
+                                                                                                      , self.model, self.model_2, self.model_4, self.model_8
+                                                                                                      , self.model_byte, self.model_2_byte, self.model_4_byte, self.model_8_byte
+                                                                                                      , self.stacked)
+                self.current_line_index += 1
+            if flag_B == 2:
+                self.stacked = []
+            if label in labels:
+                position = lines.index(labels[label][0])
+                self.current_line_index = position
+            elif label in lines:
+                position = lines.index(label)
+                self.current_line_index = position
+            if self.current_line_index >= len(lines):
+                self.worker.stop_run_code()
+                self.reset_highlight()
+                for row in range(1, self.model_code.rowCount()):
+                    item = self.model_code.item(row, 3)
+                    if item != None:
+                        item.setBackground(QtGui.QColor('darkGray'))
+            else:
+                pc_binary = self.address[self.current_line_index]
+                self.highlight_line(pc_binary)
+            if flag_T:
+                pass
+            elif arguments and len(reg) == len(arguments):
+                for i in range(len(arguments)):
+                    line_edit = line_edit_dict.get(reg[i])
                     result_int = int(arguments[i], 2)
                     result_str = format(result_int, '08x')
                     line_edit.setText(result_str)
                     line_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        n_edit = condition_dict.get("n")
-        z_edit = condition_dict.get("z")
-        c_edit = condition_dict.get("c")
-        v_edit = condition_dict.get("v")
-        n_edit.setText(flag_N)
-        z_edit.setText(flag_Z)
-        c_edit.setText(flag_C)
-        v_edit.setText(flag_V)
-        if flag_N == '1':
-            n_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+            n_edit = condition_dict.get("n")
+            z_edit = condition_dict.get("z")
+            c_edit = condition_dict.get("c")
+            v_edit = condition_dict.get("v")
+            n_edit.setText(flag_N)
+            z_edit.setText(flag_Z)
+            c_edit.setText(flag_C)
+            v_edit.setText(flag_V)
+            if flag_N == '1':
+                n_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+            if flag_Z == '1':
+                z_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+            if flag_C == '1':
+                c_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+            if flag_V == '1':
+                v_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
         else:
-            n_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        if flag_Z == '1':
-            z_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        else:
-            z_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        if flag_C == '1':
-            c_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        else:
-            c_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        if flag_V == '1':
-            v_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-        else:
-            v_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+            self.worker.stop_run_code()
     def reset_highlight(self):
         for row in range(1, self.model_code.rowCount()):
             item = self.model_code.item(row, 3)
@@ -1421,10 +1183,6 @@ class Ui_MainWindow(object):
         labels, lines = parse_labels(lines)
         lines = [item for item in lines if item not in ["", None]]
         mapping = {key: value for key, value in zip(self.address, lines)}
-
-        # Initialize variables to avoid UnboundLocalError
-        reg, arguments, label, flag_B, flag_N, flag_Z, flag_C, flag_V, flag_T = [], [], "", 0, "0", "0", "0", "0", False
-
         if self.current_line_index < len(lines):
             self.reset_backgroud_register()
             self.reset_highlight()
@@ -1436,16 +1194,6 @@ class Ui_MainWindow(object):
                                                                                                       , self.model, self.model_2, self.model_4, self.model_8
                                                                                                       , self.model_byte, self.model_2_byte, self.model_4_byte, self.model_8_byte
                                                                                                       , self.stacked)
-
-                # Simulate cache access for instruction fetch
-                pc_addr = self.address[self.current_line_index]
-                self.simulate_memory_access(pc_addr, "instruction_fetch")
-
-                # Simulate cache access for memory operations
-                if any(op in current_line.lower() for op in ['ldr', 'str', 'ldm', 'stm']):
-                    access_type = "read" if any(op in current_line.lower() for op in ['ldr', 'ldm']) else "write"
-                    self.simulate_memory_access(pc_addr, access_type)
-
                 self.current_line_index += 1
             if flag_B == 2:
                 self.stacked = []
@@ -1468,13 +1216,11 @@ class Ui_MainWindow(object):
                 pass
             elif arguments and len(reg) == len(arguments):
                 for i in range(len(arguments)):
-                    reg_name = reg[i]
-                    line_edit = line_edit_dict.get(reg_name)
-                    if line_edit is not None:  # Check if the widget exists
-                        result_int = int(arguments[i], 2)
-                        result_str = format(result_int, '08x')
-                        line_edit.setText(result_str)
-                        line_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
+                    line_edit = line_edit_dict.get(reg[i])
+                    result_int = int(arguments[i], 2)
+                    result_str = format(result_int, '08x')
+                    line_edit.setText(result_str)
+                    line_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
             n_edit = condition_dict.get("n")
             z_edit = condition_dict.get("z")
             c_edit = condition_dict.get("c")
@@ -1485,20 +1231,12 @@ class Ui_MainWindow(object):
             v_edit.setText(flag_V)
             if flag_N == '1':
                 n_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-            else:
-                n_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
             if flag_Z == '1':
                 z_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-            else:
-                z_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
             if flag_C == '1':
                 c_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-            else:
-                c_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
             if flag_V == '1':
                 v_edit.setStyleSheet("background-color: darkGray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
-            else:
-                v_edit.setStyleSheet("background-color: gray; font-family: 'Open Sans', Verdana, Arial, sans-serif; font-size: 16px;")
 
     def RunCode(self):
         thread_connected = False
@@ -1513,13 +1251,10 @@ class Ui_MainWindow(object):
             self.thread.start()
 
     def Quit(self):
-        # Quit button: Stop execution and reset all state (registers, flags, memory, etc.)
-        # Note: The Run button preserves final results when execution completes
         self.worker.stop_run_code()
         self.show_code_edit()
         self.address = []
         self.memory_current_line = []
-        self.instruction_size = 4
         self.reset_backgroud_register()
         self.reset_highlight()
         self.stacked = []
@@ -1540,7 +1275,6 @@ class Ui_MainWindow(object):
         self.lr_LineEdit.setText(format(0, '08x'))
         self.pc_LineEdit.setText(format(0, '08x'))
         self.pc = 0
-        self.instruction_size = 4
         self.current_line_index = 0
         self.n_LineEdit.setText("0")
         self.z_LineEdit.setText("0")
@@ -1600,1279 +1334,31 @@ class Ui_MainWindow(object):
 
     def Import(self):
         if self.stackedCodeWidget.currentIndex() == 1:
-            QtWidgets.QMessageBox.critical(None, "Error", "Please click Quit button to return to the editor tab")
+            QtWidgets.QMessageBox.critical(None, "Error", "Please click Quit button to return to the tab_1")
             self.Quit()
             return
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Import File", "", "Assembly Files (*.s);;Text Files (*.txt);;Binary Files (*.bin)")
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Import File", "", "Assembly Files (*.s);;Text Files (*.txt)")
         if file_path:
             try:
+                with open(file_path, 'r') as file:
+                    file_content = file.read()
+                self.CodeEditText.setPlainText(file_content)
                 file_name = file_path.split('/')[-1]
-                if file_name.split('\\')[-1]:  # Handle Windows paths
-                    file_name = file_name.split('\\')[-1]
-
-                if file_path.lower().endswith('.bin'):
-                    # Handle binary file import
-                    self._import_binary_file(file_path, file_name)
-                else:
-                    # Handle text/assembly file import
-                    with open(file_path, 'r') as file:
-                        file_content = file.read()
-                    self.CodeEditText.setPlainText(file_content)
-                    QtWidgets.QMessageBox.information(None, "Success", f"File {file_name} imported successfully")
-
+                QtWidgets.QMessageBox.information(None, "Success", f"File {file_name} added successfully")
             except Exception as e:
                 QtWidgets.QMessageBox.critical(None, "Error", f"Open file {file_name}\n{e} failed, please try again")
                 self.Quit()
 
-    def _import_binary_file(self, file_path, file_name):
-        """Import and process a binary (.bin) file"""
-        try:
-            with open(file_path, 'rb') as file:
-                binary_data = file.read()
-
-            # Convert binary to assembly representation for display
-            assembly_text = self._binary_to_assembly_display(binary_data, file_name)
-            self.CodeEditText.setPlainText(assembly_text)
-
-            # Auto-compile the binary file
-            self._compile_binary_file(binary_data, file_name)
-
-            QtWidgets.QMessageBox.information(None, "Success",
-                f"Binary file {file_name} imported and compiled successfully!\n"
-                f"Size: {len(binary_data)} bytes\n"
-                f"Instructions: {len(binary_data) // 4}\n"
-                "Ready to run.")
-
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(None, "Error", f"Failed to import binary file {file_name}:\n{e}")
-
-    def _binary_to_assembly_display(self, binary_data, file_name):
-        """Convert binary data to assembly display format"""
-        assembly_lines = [
-            f"; Binary file: {file_name}",
-            f"; Size: {len(binary_data)} bytes",
-            f"; Instructions: {len(binary_data) // 4}",
-            "",
-            ".text",
-            ""
-        ]
-
-        # Convert each 4-byte chunk to assembly representation
-        for i in range(0, len(binary_data), 4):
-            if i + 4 <= len(binary_data):
-                # Read as little-endian 32-bit word
-                instruction = struct.unpack('<I', binary_data[i:i+4])[0]
-                address = i
-
-                # Simple instruction decoding for display
-                if instruction == 0:
-                    asm_line = "NOP"
-                else:
-                    # Basic ARM instruction pattern recognition
-                    condition = (instruction >> 28) & 0xF
-                    inst_type = (instruction >> 25) & 0x7
-
-                    if condition == 0xE:  # Always condition
-                        if inst_type == 0x5:  # Branch
-                            asm_line = f"B 0x{instruction & 0xFFFFFF:06X}"
-                        elif inst_type == 0x2:  # Load/Store
-                            asm_line = f"LDR/STR 0x{instruction:08X}"
-                        elif inst_type == 0x0:  # Data processing
-                            asm_line = f"DATA_OP 0x{instruction:08X}"
-                        else:
-                            asm_line = f"UNKNOWN 0x{instruction:08X}"
-                    else:
-                        condition_names = ["EQ", "NE", "CS", "CC", "MI", "PL", "VS", "VC",
-                                         "HI", "LS", "GE", "LT", "GT", "LE", "AL", "NV"]
-                        cond_name = condition_names[condition] if condition < 16 else "??"
-                        asm_line = f"INST{cond_name} 0x{instruction:08X}"
-
-                assembly_lines.append(f"    ; @0x{address:04X}: 0x{instruction:08X}")
-                assembly_lines.append(f"    {asm_line}")
-            else:
-                # Handle incomplete instruction
-                remaining = binary_data[i:]
-                hex_str = ' '.join(f'{b:02X}' for b in remaining)
-                assembly_lines.append(f"    ; Partial: {hex_str}")
-
-        return '\n'.join(assembly_lines)
-
-    def _compile_binary_file(self, binary_data, file_name):
-        """Compile binary file directly into simulator memory"""
-        # Reset simulator state
-        self.address = []
-        self.memory_current_line = []
-        self.pc = 0
-        self.instruction_size = 4
-
-        # Convert binary to memory format
-        for i in range(0, len(binary_data), 4):
-            if i + 4 <= len(binary_data):
-                # Address for this instruction
-                pc_binary = format(self.pc, '08x')
-                self.address.append(pc_binary)
-
-                # Memory content (instruction)
-                instruction = struct.unpack('<I', binary_data[i:i+4])[0]
-                memory_line = format(instruction, '08x')
-                self.memory_current_line.append(memory_line)
-
-                self.pc += self.instruction_size
-
-        # Update memory models
-        self._update_memory_models()
-
-        # Update code view
-        self._update_code_view_from_binary(file_name)
-
-        # Switch to compiled view
-        self.stackedCodeWidget.setCurrentIndex(1)
-        self.have_compile = True
-
-    def _update_memory_models(self):
-        """Update all memory models with current data"""
-        try:
-            replace_memory(self.model, self.address, self.memory_current_line)
-            replace_memory(self.model_2, self.address, self.memory_current_line)
-            replace_memory(self.model_4, self.address, self.memory_current_line)
-            replace_memory(self.model_8, self.address, self.memory_current_line)
-            replace_memory_byte(self.model_byte, self.address, self.memory_current_line)
-            replace_memory_byte(self.model_2_byte, self.address, self.memory_current_line)
-            replace_memory_byte(self.model_4_byte, self.address, self.memory_current_line)
-            replace_memory_byte(self.model_8_byte, self.address, self.memory_current_line)
-        except ImportError:
-            # Fallback if memory module not available
-            pass
-
-    def _update_code_view_from_binary(self, file_name):
-        """Update code view with binary file information"""
-        # Clear existing code model
-        self.model_code.clear()
-        self.model_code = self.add_header_model_code(self.model_code)
-
-        # Add binary file info as comments
-        mapping_addr_mem = {key: value for key, value in zip(self.address, self.memory_current_line)}
-
-        for i, (addr, mem) in enumerate(zip(self.address, self.memory_current_line)):
-            bkpt = QtGui.QStandardItem()
-            bkpt.setCheckable(True)
-            bkpt.setCheckState(QtCore.Qt.CheckState.Unchecked)
-            bkpt.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
-
-            addr_item = QtGui.QStandardItem(addr)
-            addr_item.setFlags(addr_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            addr_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            addr_item.setBackground(QtGui.QColor('gray'))
-
-            opcode_item = QtGui.QStandardItem(mem)
-            opcode_item.setFlags(opcode_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            opcode_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            opcode_item.setBackground(QtGui.QColor('gray'))
-
-            assembly_item = QtGui.QStandardItem(f"    ; Binary instruction {i} from {file_name}")
-            assembly_item.setFlags(assembly_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-
-            self.model_code.appendRow([bkpt, addr_item, opcode_item, assembly_item])
-
-        # Highlight first line
-        if self.address:
-            self.highlight_line("00000000")
-
     def close_event(self, event):
         super().close_event(event)
         self.worker.stop_run_code()
+        sys.exit(app.exec())
 
-    def init_cache_simulator(self):
-        """Initialize the cache simulator with default configuration"""
-        try:
-            # Import cache simulator modules from cache-simulator folder
-            cache_path = os.path.join(os.path.dirname(__file__), 'cache-simulator')
-            if cache_path not in sys.path:
-                sys.path.append(cache_path)
-
-            # Import from your existing cache simulator
-
-            # Create a default configuration
-            config = SimulatorConfig()
-
-            # Initialize memory hierarchy with individual parameters
-            self.memory_hierarchy = MemoryHierarchy(
-                l1_block_size=32,  # Default block size
-                l2_block_size=32,
-                l1_cache_type='set_associative',
-                l1_associativity=2,  # Default 2-way associative
-                l1_size=4096  # Default 4KB
-            )
-
-            # Create wrapper for compatibility
-            self.cache_simulator = CacheWrapper(self.memory_hierarchy)
-
-            # Initialize data loaded flag
-            self.cache_data_loaded = False
-
-            self.update_cache_display()
-
-        except ImportError as e:
-            print(f"Cache simulator import error: {e}")
-            # Try to run the existing cache simulator directly
-            try:
-                from main import CacheSimulator
-                self.cache_simulator = CacheSimulator()
-                self.memory_hierarchy = None
-            except:
-                self.cache_simulator = None
-                self.memory_hierarchy = None
-
-        except Exception as e:
-            print(f"Cache simulator initialization error: {e}")
-            self.cache_simulator = None
-            self.memory_hierarchy = None
-
-    def apply_cache_configuration(self):
-        """Apply the selected cache configuration"""
-        if not hasattr(self, 'memory_hierarchy') or not self.memory_hierarchy:
-            return
-
-        try:
-            # Save current statistics and main memory data before reconfiguration
-            current_stats = None
-            main_memory_data = None
-            data_was_loaded = getattr(self, 'cache_data_loaded', False)
-
-            if hasattr(self, 'memory_hierarchy') and self.memory_hierarchy:
-                current_stats = self.memory_hierarchy.get_statistics()
-                # Preserve main memory data if it exists and data was previously loaded
-                if data_was_loaded and hasattr(self.memory_hierarchy, 'main_memory') and self.memory_hierarchy.main_memory:
-                    main_memory_data = self.memory_hierarchy.main_memory
-
-            # Parse configuration values
-            cache_size_str = self.cache_size_combo.currentText()
-            block_size_str = self.block_size_combo.currentText()
-            associativity_str = self.associativity_combo.currentText()
-            replacement_policy = self.cache_policy_combo.currentText()
-
-            # Extract numeric values
-            cache_size = int(cache_size_str[:-2]) * 1024  # Convert KB to bytes
-            l1_block_size = int(block_size_str[:-1])  # Remove 'B' suffix
-            l2_block_size = 32  # Keep L2 block size constant
-            associativity = int(associativity_str)
-
-            # Determine cache type based on associativity
-            if associativity == 1:
-                l1_cache_type = 'direct'
-            elif associativity >= cache_size // l1_block_size:
-                l1_cache_type = 'fully_associative'
-            else:
-                l1_cache_type = 'set_associative'
-
-            # Reinitialize memory hierarchy with new configuration
-            self.memory_hierarchy = MemoryHierarchy(
-                l1_block_size=l1_block_size,
-                l2_block_size=l2_block_size,
-                l1_cache_type=l1_cache_type,
-                l1_associativity=associativity,
-                l1_size=cache_size
-            )
-
-            # Restore main memory data if it existed and re-populate cache
-            if main_memory_data and data_was_loaded:
-                self.memory_hierarchy.main_memory = main_memory_data
-
-                # Re-simulate memory accesses to populate the new cache configuration
-                # This will load data into the cache with the new configuration
-                self._resimulate_cache_accesses()
-
-                print(f"Cache reconfigured - data reloaded into new cache structure")
-            else:
-                print(f"Cache reconfigured - no previous data to reload")
-
-            # Update wrapper
-            self.cache_simulator = CacheWrapper(self.memory_hierarchy)
-
-            # Update cache display (this will show the new configuration with data if available)
-            self.update_cache_display()
-
-            # Update statistics display
-            self._update_cache_statistics()
-
-            # Configuration applied silently - no popup window
-            print("Cache configuration applied successfully!")
-            print(f"Configuration Details:")
-            print(f"  - Cache Size: {cache_size_str} ({cache_size} bytes)")
-            print(f"  - Block Size: {block_size_str} ({l1_block_size} bytes)")
-            print(f"  - Associativity: {associativity_str}-way ({associativity} ways per set)")
-            print(f"  - Cache Type: {l1_cache_type}")
-            print(f"  - Replacement Policy: {replacement_policy}")
-            print(f"  - Number of Sets: {cache_size // (l1_block_size * associativity)}")
-
-            # Show information about data reload if main memory had data
-            if main_memory_data and data_was_loaded:
-                stats = self.memory_hierarchy.get_statistics()
-                l1d_stats = stats['l1_dcache']
-                l1i_stats = stats['l1_icache']
-                total_accesses = l1d_stats['accesses'] + l1i_stats['accesses']
-                print(f"  - Main memory data preserved and reloaded into new cache configuration")
-                print(f"  - Cache populated with {total_accesses} memory accesses")
-
-            print(f"Cache display updated - showing {self.cache_model.rowCount()} rows")
-
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                                         f"Failed to apply cache configuration: {e}")
-
-    def _resimulate_cache_accesses(self):
-        """Re-simulate memory accesses to populate cache with new configuration"""
-        try:
-            access_count = 0
-            successful_accesses = 0
-
-            # Simulate instruction fetches for loaded program
-            # Start from base address 0x1000 (common program start)
-            base_address = 0x1000
-
-            # Simulate instruction fetches for up to 256 instructions (1KB of program)
-            for i in range(0, 1024, 4):  # 4 bytes per instruction
-                addr = base_address + i
-                try:
-                    success = self.simulate_memory_access(addr, "instruction_fetch")
-                    access_count += 1
-                    if success:
-                        successful_accesses += 1
-                except Exception as e:
-                    # Continue with other accesses even if some fail
-                    pass
-
-            # Simulate data accesses for test patterns
-            data_addresses = [0x2000, 0x8000, 0x10000]  # Common data regions
-            for base_addr in data_addresses:
-                for i in range(0, 256, 4):  # 64 data accesses per region
-                    addr = base_addr + i
-                    try:
-                        access_type = "read" if i % 8 < 6 else "write"
-                        success = self.simulate_memory_access(addr, access_type)
-                        access_count += 1
-                        if success:
-                            successful_accesses += 1
-                    except Exception as e:
-                        # Continue with other accesses even if some fail
-                        pass
-
-            # Force update statistics after all accesses
-            self._update_cache_statistics()
-
-            print(f"Re-simulated cache accesses for new configuration")
-            print(f"Attempted {access_count} memory accesses, {successful_accesses} successful")
-
-            # Get final statistics to verify
-            if hasattr(self, 'memory_hierarchy') and self.memory_hierarchy:
-                stats = self.memory_hierarchy.get_statistics()
-                l1d_accesses = stats['l1_dcache']['accesses']
-                l1i_accesses = stats['l1_icache']['accesses']
-                total_cache_accesses = l1d_accesses + l1i_accesses
-                print(f"Final cache statistics: {total_cache_accesses} total accesses (L1D: {l1d_accesses}, L1I: {l1i_accesses})")
-
-        except Exception as e:
-            print(f"Error re-simulating cache accesses: {e}")
-
-    def reset_cache_statistics(self):
-        """Reset cache statistics"""
-        if hasattr(self, 'memory_hierarchy') and self.memory_hierarchy:
-            self.memory_hierarchy.reset_statistics()
-
-        self.hit_rate_value.setText("0.00%")
-        self.miss_rate_value.setText("0.00%")
-        self.total_accesses_value.setText("0")
-        self.cache_hits_value.setText("0")
-        self.cache_misses_value.setText("0")
-
-        # Reset data loaded flag
-        self.cache_data_loaded = False
-
-        self.update_cache_display()
-
-    def import_demo_file(self):
-        """Import a binary file from Demo folder to test cache performance"""
-        try:
-            # Get list of binary files from Demo folder
-            demo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Demo")
-            if not os.path.exists(demo_path):
-                QtWidgets.QMessageBox.warning(None, "Warning", "Demo folder not found")
-                return
-
-            # Find all binary files
-            binary_files = [f for f in os.listdir(demo_path) if f.endswith('.bin')]
-
-            if not binary_files:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No binary files found in Demo folder")
-                return
-
-            # Let user select a file
-            file_name, ok = QtWidgets.QInputDialog.getItem(
-                None, "Import Demo File",
-                "Select a binary file to import:",
-                binary_files, 0, False
-            )
-
-            if not ok or not file_name:
-                return
-
-            file_path = os.path.join(demo_path, file_name)
-
-            # Check if cache is configured
-            if not hasattr(self, 'memory_hierarchy') or not self.memory_hierarchy:
-                QtWidgets.QMessageBox.warning(None, "Warning",
-                                            "Cache not configured. Please apply cache configuration first.")
-                return
-
-            # Read and process the binary file
-            with open(file_path, 'rb') as f:
-                data = f.read()
-
-            # Reset cache statistics for clean test
-            self.reset_cache_statistics()
-
-            # Load the binary data into main memory first!
-            base_address = 0x1000  # Start loading from this address
-            self.memory_hierarchy.main_memory.load_program(data, base_address)
-
-            # Also load some test data at other addresses for more interesting cache behavior
-            test_pattern = bytearray([0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22,
-                                     0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00])
-            self.memory_hierarchy.main_memory.load_program(test_pattern * 4, 0x2000)  # 64 bytes
-            self.memory_hierarchy.main_memory.load_program(test_pattern * 2, 0x8000)  # 32 bytes
-
-            # Load the binary data and simulate instruction fetches
-            base_address = 0x1000  # Start loading from this address
-
-            # Process data in 4-byte chunks (instructions)
-            for i in range(0, len(data), 4):
-                chunk = data[i:i+4]
-                address = base_address + i
-
-                # Simulate instruction fetch (this will test the I-cache)
-                self.simulate_memory_access(address, "instruction_fetch")
-
-                # Create more diverse access patterns to use different cache sets/ways
-                if i % 4 == 0:  # Every instruction, simulate data access
-                    # Create addresses that map to different sets
-                    # With 64 sets and 32-byte blocks, addresses 2048 apart map to different sets
-                    data_addr = 0x2000 + (i // 4) * 2048  # This ensures different sets
-                    self.simulate_memory_access(data_addr, "read")
-
-                # Add some stack-like accesses (different address space)
-                if i % 8 == 0:
-                    stack_addr = 0x8000 + (i // 8) * 64  # Different region, different sets
-                    self.simulate_memory_access(stack_addr, "read")
-
-                # Add some high-memory accesses to create conflicts
-                if i % 12 == 0:
-                    high_addr = 0x10000 + (i // 12) * 32  # Same set as some base addresses
-                    self.simulate_memory_access(high_addr, "read")
-
-            # Update displays
-            self.update_cache_display()
-            self._update_cache_statistics()
-
-            # Set flag to indicate data has been loaded
-            self.cache_data_loaded = True
-
-            # Show completion message
-            stats = self.memory_hierarchy.get_statistics()
-            l1d_stats = stats['l1_dcache']
-            l1i_stats = stats['l1_icache']
-
-            total_accesses = l1d_stats['accesses'] + l1i_stats['accesses']
-            total_hits = l1d_stats['hits'] + l1i_stats['hits']
-            hit_rate = (total_hits / total_accesses * 100) if total_accesses > 0 else 0
-
-            QtWidgets.QMessageBox.information(None, "Import Complete",
-                                            f"Successfully imported {file_name}\n"
-                                            f"Processed {len(data)} bytes\n"
-                                            f"Total cache accesses: {total_accesses}\n"
-                                            f"Hit rate: {hit_rate:.2f}%")
-
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(None, "Error", f"Failed to import file: {e}")
-
-    def on_tab_changed(self, index):
-        """Handle tab changes"""
-        if self.tabWidget.tabText(index) == "Cache":
-            # Update cache display when cache tab is selected
-            self._update_cache_statistics()
-            # Only update display if we have cache data
-            if hasattr(self, 'memory_hierarchy') and self.memory_hierarchy:
-                stats = self.memory_hierarchy.get_statistics()
-                if (stats['l1_dcache']['accesses'] > 0 or
-                    stats['l1_icache']['accesses'] > 0):
-                    self.update_cache_display()
-                else:
-                    # Show cache structure even when empty
-                    self.update_cache_display()
-
-    def update_cache_display(self):
-        """Update the cache contents display"""
-        if not hasattr(self, 'memory_hierarchy') or not self.memory_hierarchy:
-            return
-
-        # Clear existing model
-        self.cache_model.clear()
-        self.cache_model.setHorizontalHeaderLabels(["Cache", "Set", "Way", "Valid", "Tag", "Data", "LRU"])
-
-        try:
-            # Display L1 Data Cache
-            self._add_cache_to_display("L1D", self.memory_hierarchy.l1_dcache)
-
-            # Display L1 Instruction Cache
-            self._add_cache_to_display("L1I", self.memory_hierarchy.l1_icache)
-
-            # Display L2 Cache
-            self._add_cache_to_display("L2", self.memory_hierarchy.l2_cache)
-
-            # If no valid blocks to display, show cache structure info
-            if self.cache_model.rowCount() == 0:
-                self._add_cache_structure_info()
-
-        except Exception as e:
-            print(f"Error updating cache display: {e}")
-
-    def _add_cache_structure_info(self):
-        """Add cache structure information when no valid blocks exist"""
-        try:
-            # Get current configuration values from UI
-            cache_size_str = self.cache_size_combo.currentText() if hasattr(self, 'cache_size_combo') else "4KB"
-            block_size_str = self.block_size_combo.currentText() if hasattr(self, 'block_size_combo') else "32B"
-            associativity_str = self.associativity_combo.currentText() if hasattr(self, 'associativity_combo') else "2"
-            replacement_policy = self.cache_policy_combo.currentText() if hasattr(self, 'cache_policy_combo') else "LRU"
-
-            # Calculate cache structure info
-            cache_size = int(cache_size_str[:-2]) * 1024 if cache_size_str.endswith('KB') else 4096
-            block_size = int(block_size_str[:-1]) if block_size_str.endswith('B') else 32
-            associativity = int(associativity_str)
-            num_sets = cache_size // (block_size * associativity)
-
-            # Show comprehensive cache configuration
-            config_info = [
-                ("Configuration", "Setting", "Value", "Status", "Details", "", ""),
-                ("Cache Size", cache_size_str, f"{cache_size} bytes", "CONFIGURED", f"{num_sets} sets total", "", ""),
-                ("Block Size", block_size_str, f"{block_size} bytes", "CONFIGURED", f"Data granularity", "", ""),
-                ("Associativity", f"{associativity}-way", f"{associativity} ways/set", "CONFIGURED", "LRU replacement" if replacement_policy == "LRU" else replacement_policy, "", ""),
-                ("Replacement", replacement_policy, "Active", "CONFIGURED", "Cache eviction policy", "", "")
-            ]
-
-            # Add configuration header
-            for info in config_info:
-                row = []
-                for i, text in enumerate(info):
-                    item = QtGui.QStandardItem(text)
-                    if i == 0:  # Configuration type
-                        item.setBackground(QtGui.QColor("#BBDEFB"))  # Light blue
-                        item.setForeground(QtGui.QColor("#1976D2"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                        item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                    elif i == 3 and text == "CONFIGURED":  # Status column
-                        item.setBackground(QtGui.QColor("#C8E6C9"))  # Light green
-                        item.setForeground(QtGui.QColor("#388E3C"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                        item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                    else:
-                        item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                    row.append(item)
-                self.cache_model.appendRow(row)
-
-            # Add separator
-            separator_row = []
-            for i in range(7):
-                item = QtGui.QStandardItem("=" * 10)
-                item.setBackground(QtGui.QColor("#E0E0E0"))  # Neutral gray
-                item.setForeground(QtGui.QColor("#616161"))
-                bold_font = QFont()
-                bold_font.setBold(True)
-                item.setFont(bold_font)
-                item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                separator_row.append(item)
-            self.cache_model.appendRow(separator_row)
-
-            # Show L1D structure if available
-            if hasattr(self, 'memory_hierarchy') and self.memory_hierarchy:
-                l1d_sets = len(self.memory_hierarchy.l1_dcache.blocks)
-                l1d_ways = len(self.memory_hierarchy.l1_dcache.blocks[0]) if l1d_sets > 0 else 0
-
-                row = []
-                row.append(QtGui.QStandardItem("L1D Cache"))
-                row.append(QtGui.QStandardItem(f"{l1d_sets} sets"))
-                row.append(QtGui.QStandardItem(f"{l1d_ways} ways"))
-                row.append(QtGui.QStandardItem("EMPTY"))
-                row.append(QtGui.QStandardItem("No data loaded"))
-                row.append(QtGui.QStandardItem("Ready for data"))
-                row.append(QtGui.QStandardItem("---"))
-
-                # Set colors for empty cache
-                for i, item in enumerate(row):
-                    if i == 0:  # Cache name
-                        item.setBackground(QtGui.QColor("#E3F2FD"))
-                        item.setForeground(QtGui.QColor("#1565C0"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    elif i == 3:  # EMPTY status
-                        item.setBackground(QtGui.QColor("#FFF8E1"))
-                        item.setForeground(QtGui.QColor("#FF8F00"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.cache_model.appendRow(row)
-
-                # Show L1I structure
-                l1i_sets = len(self.memory_hierarchy.l1_icache.blocks)
-                l1i_ways = len(self.memory_hierarchy.l1_icache.blocks[0]) if l1i_sets > 0 else 0
-
-                row = []
-                row.append(QtGui.QStandardItem("L1I Cache"))
-                row.append(QtGui.QStandardItem(f"{l1i_sets} sets"))
-                row.append(QtGui.QStandardItem(f"{l1i_ways} ways"))
-                row.append(QtGui.QStandardItem("EMPTY"))
-                row.append(QtGui.QStandardItem("No data loaded"))
-                row.append(QtGui.QStandardItem("Ready for instructions"))
-                row.append(QtGui.QStandardItem("---"))
-
-                # Set colors for empty cache
-                for i, item in enumerate(row):
-                    if i == 0:  # Cache name
-                        item.setBackground(QtGui.QColor("#FFF3E0"))
-                        item.setForeground(QtGui.QColor("#EF6C00"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    elif i == 3:  # EMPTY status
-                        item.setBackground(QtGui.QColor("#FFF8E1"))
-                        item.setForeground(QtGui.QColor("#FF8F00"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.cache_model.appendRow(row)
-            else:
-                # Show basic structure when memory hierarchy is not initialized
-                row = []
-                row.append(QtGui.QStandardItem("Cache"))
-                row.append(QtGui.QStandardItem("Not initialized"))
-                row.append(QtGui.QStandardItem("---"))
-                row.append(QtGui.QStandardItem("PENDING"))
-                row.append(QtGui.QStandardItem("Apply configuration first"))
-                row.append(QtGui.QStandardItem("---"))
-                row.append(QtGui.QStandardItem("---"))
-
-                # Set colors for pending state
-                for i, item in enumerate(row):
-                    if i == 0:  # Cache name
-                        item.setBackground(QtGui.QColor("#FFEBEE"))
-                        item.setForeground(QtGui.QColor("#C62828"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    elif i == 3:  # PENDING status
-                        item.setBackground(QtGui.QColor("#FFCCBC"))
-                        item.setForeground(QtGui.QColor("#D84315"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        item.setFont(bold_font)
-                    item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.cache_model.appendRow(row)
-
-        except Exception as e:
-            print(f"Error adding cache structure info: {e}")
-
-    def _add_cache_to_display(self, cache_name, cache):
-        """Add a specific cache to the display table - only show valid blocks with data"""
-        valid_blocks_added = 0
-
-        for set_idx, cache_set in enumerate(cache.blocks):
-            for way_idx, block in enumerate(cache_set):
-                # Only display valid cache blocks that actually contain data
-                if not block.valid:
-                    continue
-
-                # Skip blocks that don't have meaningful data
-                if not hasattr(block, 'data') or block.data is None:
-                    continue
-
-                row = []
-
-                # Cache name with color coding
-                cache_item = QtGui.QStandardItem(cache_name)
-                cache_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
-                # Color code by cache type - improved colors for better visibility
-                if cache_name == "L1D":
-                    cache_item.setBackground(QtGui.QColor("#E3F2FD"))  # Light blue - Data cache
-                    cache_item.setForeground(QtGui.QColor("#1565C0"))
-                    bold_font = QFont()
-                    bold_font.setBold(True)
-                    cache_item.setFont(bold_font)
-                elif cache_name == "L1I":
-                    cache_item.setBackground(QtGui.QColor("#FFF3E0"))  # Light orange - Instruction cache
-                    cache_item.setForeground(QtGui.QColor("#EF6C00"))
-                    bold_font = QFont()
-                    bold_font.setBold(True)
-                    cache_item.setFont(bold_font)
-                elif cache_name == "L2":
-                    cache_item.setBackground(QtGui.QColor("#F3E5F5"))  # Light purple - L2 cache
-                    cache_item.setForeground(QtGui.QColor("#7B1FA2"))
-                    bold_font = QFont()
-                    bold_font.setBold(True)
-                    cache_item.setFont(bold_font)
-
-                row.append(cache_item)
-
-                # Set index
-                set_item = QtGui.QStandardItem(str(set_idx))
-                set_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                row.append(set_item)
-
-                # Way index
-                way_item = QtGui.QStandardItem(str(way_idx))
-                way_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                row.append(way_item)
-
-                # Valid bit (always 1 since we only show valid blocks)
-                valid_item = QtGui.QStandardItem("VALID")
-                valid_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                valid_item.setBackground(QtGui.QColor("#C8E6C9"))  # Light green
-                valid_item.setForeground(QtGui.QColor("#2E7D32"))
-                bold_font = QFont()
-                bold_font.setBold(True)
-                valid_item.setFont(bold_font)
-                row.append(valid_item)
-
-                # Tag - improved formatting
-                try:
-                    if hasattr(block, 'tag') and block.tag is not None:
-                        if isinstance(block.tag, str):
-                            # Handle string tags
-                            tag_value = int(block.tag, 16) if block.tag.startswith('0x') else int(block.tag)
-                        else:
-                            # Handle numeric tags
-                            tag_value = int(block.tag)
-                        tag_str = f"0x{tag_value:08X}"
-                    else:
-                        tag_str = "0x00000000"
-                except (ValueError, TypeError):
-                    tag_str = "0x00000000"
-
-                tag_item = QtGui.QStandardItem(tag_str)
-                tag_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                row.append(tag_item)
-
-                # Data (show meaningful portion) - enhanced display
-                try:
-                    if isinstance(block.data, (list, tuple)) and len(block.data) > 0:
-                        # Handle list/tuple of bytes
-                        data_bytes = [int(b) & 0xFF for b in block.data[:8]]  # Show first 8 bytes
-                        data_str = " ".join([f"{b:02X}" for b in data_bytes])
-                        if len(block.data) > 8:
-                            data_str += "..."
-                    elif isinstance(block.data, (bytes, bytearray)) and len(block.data) > 0:
-                        # Handle bytes and bytearray objects
-                        data_bytes = block.data[:8]  # Show first 8 bytes
-                        data_str = " ".join([f"{b:02X}" for b in data_bytes])
-                        if len(block.data) > 8:
-                            data_str += "..."
-                    elif isinstance(block.data, str) and block.data.strip():
-                        # Handle string representation
-                        if block.data.startswith('0x'):
-                            # Parse hex string
-                            try:
-                                hex_val = int(block.data, 16)
-                                data_str = f"{hex_val:08X}"
-                            except ValueError:
-                                data_str = block.data[:16] + ("..." if len(block.data) > 16 else "")
-                        else:
-                            data_str = block.data[:16] + ("..." if len(block.data) > 16 else "")
-                    elif isinstance(block.data, (int, float)):
-                        # Handle numeric data
-                        data_val = int(block.data) & 0xFFFFFFFF
-                        data_str = f"{data_val:08X}"
-                    else:
-                        # Default representation for other data types
-                        data_str = str(block.data)[:16]
-                        if len(str(block.data)) > 16:
-                            data_str += "..."
-
-                except Exception:
-                    # Skip blocks that can't be processed
-                    continue
-
-                # Only add blocks that have actual data to display
-                if not data_str or data_str.strip() in ["", "00000000", "0", "00 00 00 00"]:
-                    continue
-
-                data_item = QtGui.QStandardItem(data_str)
-                data_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
-                row.append(data_item)
-
-                # LRU information with color coding
-                lru_str = str(getattr(block, 'lru_counter', 0))
-                lru_item = QtGui.QStandardItem(lru_str)
-                lru_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
-                # Color code LRU values (lower = more recently used) - improved colors
-                try:
-                    lru_val = int(lru_str)
-                    if lru_val == 0:
-                        lru_item.setBackground(QtGui.QColor("#A5D6A7"))  # Fresh green - Most recent
-                        lru_item.setForeground(QtGui.QColor("#1B5E20"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        lru_item.setFont(bold_font)
-                    elif lru_val <= 2:
-                        lru_item.setBackground(QtGui.QColor("#FFECB3"))  # Warm yellow - Moderate
-                        lru_item.setForeground(QtGui.QColor("#F57C00"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        lru_item.setFont(bold_font)
-                    else:
-                        lru_item.setBackground(QtGui.QColor("#FFCDD2"))  # Light red - Least recent
-                        lru_item.setForeground(QtGui.QColor("#C62828"))
-                        bold_font = QFont()
-                        bold_font.setBold(True)
-                        lru_item.setFont(bold_font)
-                except ValueError:
-                    pass
-
-                row.append(lru_item)
-
-                self.cache_model.appendRow(row)
-                valid_blocks_added += 1
-
-                # Limit display to prevent UI slowdown - show only first 20 valid blocks per cache
-                if valid_blocks_added >= 20:
-                    # Add indication that there are more blocks
-                    more_row = []
-                    more_row.append(QtGui.QStandardItem(f"{cache_name}"))
-                    more_row.append(QtGui.QStandardItem("..."))
-                    more_row.append(QtGui.QStandardItem("..."))
-                    more_row.append(QtGui.QStandardItem("MORE"))
-                    more_row.append(QtGui.QStandardItem("..."))
-                    more_row.append(QtGui.QStandardItem("Additional blocks exist"))
-                    more_row.append(QtGui.QStandardItem("..."))
-
-                    for item in more_row:
-                        if item.text() == "MORE":
-                            item.setBackground(QtGui.QColor("#E1F5FE"))
-                            item.setForeground(QtGui.QColor("#0277BD"))
-                            bold_font = QFont()
-                            bold_font.setBold(True)
-                            item.setFont(bold_font)
-                        else:
-                            item.setBackground(QtGui.QColor("#F5F5F5"))
-                            item.setForeground(QtGui.QColor("#757575"))
-                        item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
-                    self.cache_model.appendRow(more_row)
-                    return  # Stop adding more blocks for this cache
-
-        # If no valid blocks were added, add a summary row
-        if valid_blocks_added == 0:
-            row = []
-            row.append(QtGui.QStandardItem(cache_name))
-            row.append(QtGui.QStandardItem("All sets"))
-            row.append(QtGui.QStandardItem("All ways"))
-            row.append(QtGui.QStandardItem("NO DATA"))
-            row.append(QtGui.QStandardItem("---"))
-            row.append(QtGui.QStandardItem("Cache configured but empty"))
-            row.append(QtGui.QStandardItem("---"))
-
-            for item in row:
-                if item.text() == "NO DATA":
-                    item.setBackground(QtGui.QColor("#FFF8E1"))  # Light amber for NO DATA
-                    item.setForeground(QtGui.QColor("#E65100"))  # Dark orange text
-                elif item.text() == "Cache configured but empty":
-                    item.setBackground(QtGui.QColor("#F5F5F5"))  # Light gray for status
-                    item.setForeground(QtGui.QColor("#616161"))  # Medium gray text
-                item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
-            self.cache_model.appendRow(row)
-
-    def simulate_memory_access(self, address, access_type="read", update_display=True):
-        """Simulate a memory access through the cache"""
-        if not hasattr(self, 'memory_hierarchy') or not self.memory_hierarchy:
-            return False
-
-        try:
-            # Convert address to integer if it's a string
-            if isinstance(address, str):
-                addr = int(address, 16)
-            else:
-                addr = address
-
-            # Perform memory access through hierarchy
-            if access_type.lower() == "instruction_fetch":
-                # Instruction fetch from I-cache
-                self.memory_hierarchy.read_instruction(addr)
-            elif access_type.lower() == "read":
-                # Data read from D-cache
-                self.memory_hierarchy.read_data(addr)
-            else:  # write
-                # Data write to D-cache
-                self.memory_hierarchy.write_data(addr, 0)  # Dummy value for simulation
-
-            # Update cache display (less frequently to avoid performance issues)
-            # Only update if explicitly requested and randomly selected
-            if update_display and random.random() < 0.01:  # Update display 1% of the time
-                self.update_cache_display()
-
-            return True
-
-        except Exception as e:
-            print(f"Error in cache simulation for address 0x{addr:08X}: {e}")
-            return False
-
-    def _update_cache_statistics(self):
-        """Update the cache statistics display"""
-        if not hasattr(self, 'memory_hierarchy') or not self.memory_hierarchy:
-            return
-
-        try:
-            stats = self.memory_hierarchy.get_statistics()
-
-            # Calculate combined L1 statistics
-            l1d_stats = stats['l1_dcache']
-            l1i_stats = stats['l1_icache']
-
-            total_l1_accesses = l1d_stats['accesses'] + l1i_stats['accesses']
-            total_l1_hits = l1d_stats['hits'] + l1i_stats['hits']
-            total_l1_misses = l1d_stats['misses'] + l1i_stats['misses']
-
-            hit_rate = (total_l1_hits / total_l1_accesses * 100) if total_l1_accesses > 0 else 0
-            miss_rate = (total_l1_misses / total_l1_accesses * 100) if total_l1_accesses > 0 else 0
-
-            self.hit_rate_value.setText(f"{hit_rate:.2f}%")
-            self.miss_rate_value.setText(f"{miss_rate:.2f}%")
-            self.total_accesses_value.setText(str(total_l1_accesses))
-            self.cache_hits_value.setText(str(total_l1_hits))
-            self.cache_misses_value.setText(str(total_l1_misses))
-
-        except Exception as e:
-            print(f"Error updating cache statistics: {e}")
-
-    def run_automated_benchmark(self):
-        """Run automated benchmark testing across all configurations"""
-        try:
-            # Show progress dialog
-            progress = QtWidgets.QProgressDialog("Running benchmark tests...", "Cancel", 0, 100, self.tabWidget)
-            progress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
-            progress.setMinimumDuration(0)
-            progress.show()
-
-            # Get available binary files
-            demo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Demo")
-            binary_files = [f for f in os.listdir(demo_path) if f.endswith('.bin')]
-
-            if not binary_files:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No binary files found in Demo folder")
-                return
-
-            # Define test configurations based on Milestone 2 requirements
-            test_configs = self._get_milestone2_configurations()
-
-            results = []
-            total_tests = len(binary_files) * len(test_configs)
-            current_test = 0
-
-            # Test each binary file with each configuration
-            for binary_file in binary_files:
-                for config in test_configs:
-                    if progress.wasCanceled():
-                        return
-
-                    # Update progress
-                    progress.setValue(int((current_test / total_tests) * 100))
-                    progress.setLabelText(f"Testing {binary_file} with {config['name']}...")
-                    QtCore.QCoreApplication.processEvents()
-
-                    # Run single test
-                    result = self._run_single_benchmark_test(binary_file, config)
-                    if result:
-                        results.append(result)
-
-                    current_test += 1
-
-            progress.setValue(100)
-            progress.close()
-
-            # Save results to CSV file
-            self._save_benchmark_results(results)
-
-            # Find and display optimal configurations
-            self._display_optimal_configurations(results)
-
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(None, "Error", f"Benchmark failed: {e}")
-
-    def _get_milestone2_configurations(self):
-        """Get all cache configurations as per Milestone 2 requirements"""
-        configs = []
-
-        # L1 Cache configurations (1KB each for I and D)
-        l1_sizes = ["1KB"]  # Milestone 2 requirement
-        l1_block_sizes = ["4B", "8B", "16B", "32B"]  # Configurable as per requirements
-        l1_types = ["1", "2", "4"]  # Direct (1), 2-way, 4-way associative
-
-        # L2 Cache (16KB unified)
-        l2_block_sizes = ["16B", "32B", "64B"]  # Configurable as per requirements
-
-        config_id = 1
-        for l1_size in l1_sizes:
-            for l1_block_size in l1_block_sizes:
-                for l1_assoc in l1_types:
-                    for l2_block_size in l2_block_sizes:
-                        configs.append({
-                            'id': config_id,
-                            'name': f"L1:{l1_size}-{l1_block_size}-{l1_assoc}way_L2:16KB-{l2_block_size}",
-                            'l1_size': l1_size,
-                            'l1_block_size': l1_block_size,
-                            'l1_associativity': l1_assoc,
-                            'l2_block_size': l2_block_size
-                        })
-                        config_id += 1
-
-        return configs
-
-    def _run_single_benchmark_test(self, binary_file, config):
-        """Run a single benchmark test with given configuration"""
-        try:
-            # Apply configuration
-            self.cache_size_combo.setCurrentText(config['l1_size'])
-            self.block_size_combo.setCurrentText(config['l1_block_size'])
-            self.associativity_combo.setCurrentText(config['l1_associativity'])
-
-            # Apply cache configuration
-            self.apply_cache_configuration()
-
-            # Reset statistics
-            self.reset_cache_statistics()
-
-            # Load and run binary file
-            demo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Demo")
-            file_path = os.path.join(demo_path, binary_file)
-
-            with open(file_path, 'rb') as f:
-                data = f.read()
-
-            # Load program into memory
-            base_address = 0x1000
-            self.memory_hierarchy.main_memory.load_program(data, base_address)
-
-            # Simulate instruction fetches and data accesses
-            instruction_count = 0
-            for i in range(0, len(data), 4):
-                address = base_address + i
-                # Simulate instruction fetch
-                self.simulate_memory_access(address, "instruction_fetch")
-                instruction_count += 1
-
-                # Simulate some data accesses for realistic patterns
-                if i % 16 == 0:  # Every 4th instruction does data access
-                    data_addr = 0x2000 + i
-                    self.simulate_memory_access(data_addr, "read")
-
-            # Get final statistics
-            stats = self.memory_hierarchy.get_statistics()
-
-            # Calculate cost function as per Milestone 2
-            l1_misses = stats['total_l1_misses']
-            l2_misses = stats['l2_cache']['misses']
-            write_backs = stats['total_write_backs']
-
-            cost = 0.5 * l1_misses + l2_misses + write_backs
-
-            return {
-                'binary_file': binary_file,
-                'config_name': config['name'],
-                'config_id': config['id'],
-                'l1_size': config['l1_size'],
-                'l1_block_size': config['l1_block_size'],
-                'l1_associativity': config['l1_associativity'],
-                'l2_block_size': config['l2_block_size'],
-                'l1_misses': l1_misses,
-                'l2_misses': l2_misses,
-                'write_backs': write_backs,
-                'cost': cost,
-                'instruction_count': instruction_count,
-                'l1_hit_rate': (stats['l1_dcache']['hits'] + stats['l1_icache']['hits']) /
-                              (stats['l1_dcache']['accesses'] + stats['l1_icache']['accesses']) * 100
-                              if (stats['l1_dcache']['accesses'] + stats['l1_icache']['accesses']) > 0 else 0
-            }
-
-        except Exception as e:
-            print(f"Error in benchmark test {config['name']} with {binary_file}: {e}")
-            return None
-
-    def _save_benchmark_results(self, results):
-        """Save benchmark results to CSV file in Result folder"""
-        try:
-            import csv
-            from datetime import datetime
-            from pathlib import Path
-
-            # Create Result folder if it doesn't exist
-            results_dir = Path("Result")
-            results_dir.mkdir(exist_ok=True)
-
-            # Create results filename with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = results_dir / f"benchmark_results_{timestamp}.csv"
-
-            with open(filename, 'w', newline='') as csvfile:
-                fieldnames = ['binary_file', 'config_name', 'config_id', 'l1_size', 'l1_block_size',
-                             'l1_associativity', 'l2_block_size', 'l1_misses', 'l2_misses',
-                             'write_backs', 'cost', 'instruction_count', 'l1_hit_rate']
-
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-
-                for result in results:
-                    writer.writerow(result)
-
-            print(f"Benchmark results saved to {filename}")
-
-        except Exception as e:
-            print(f"Error saving benchmark results: {e}")
-
-    def _display_optimal_configurations(self, results):
-        """Find and display optimal configurations for each binary file"""
-        if not results:
-            return
-
-        try:
-            # Group results by binary file
-            binary_results = {}
-            for result in results:
-                binary_file = result['binary_file']
-                if binary_file not in binary_results:
-                    binary_results[binary_file] = []
-                binary_results[binary_file].append(result)
-
-            # Find optimal configuration for each binary file
-            optimal_configs = {}
-            for binary_file, file_results in binary_results.items():
-                # Find minimum cost configuration
-                min_cost_result = min(file_results, key=lambda x: x['cost'])
-                optimal_configs[binary_file] = min_cost_result
-
-            # Create summary dialog
-            summary_text = "MILESTONE 2 BENCHMARK RESULTS\n"
-            summary_text += "=" * 50 + "\n\n"
-
-            summary_text += "OPTIMAL CONFIGURATIONS BY PROGRAM:\n"
-            summary_text += "-" * 40 + "\n"
-
-            for binary_file, optimal in optimal_configs.items():
-                summary_text += f"\nProgram: {binary_file}\n"
-                summary_text += f"  Optimal Config: {optimal['config_name']}\n"
-                summary_text += f"  Cost: {optimal['cost']:.2f}\n"
-                summary_text += f"  L1 Misses: {optimal['l1_misses']}\n"
-                summary_text += f"  L2 Misses: {optimal['l2_misses']}\n"
-                summary_text += f"  Write-backs: {optimal['write_backs']}\n"
-                summary_text += f"  L1 Hit Rate: {optimal['l1_hit_rate']:.2f}%\n"
-
-            # Overall best configuration
-            overall_best = min(results, key=lambda x: x['cost'])
-            summary_text += f"\nOVERALL BEST CONFIGURATION:\n"
-            summary_text += f"  Config: {overall_best['config_name']}\n"
-            summary_text += f"  Program: {overall_best['binary_file']}\n"
-            summary_text += f"  Minimum Cost: {overall_best['cost']:.2f}\n"
-
-            # Cost function explanation
-            summary_text += f"\nCOST FUNCTION: 0.5 × L1_misses + L2_misses + write_backs\n"
-            summary_text += f"(As specified in Milestone 2 requirements)\n"
-
-            # Show results dialog
-            dialog = QtWidgets.QDialog()
-            dialog.setWindowTitle("Benchmark Results - Milestone 2")
-            dialog.setModal(True)
-            dialog.resize(600, 500)
-
-            layout = QtWidgets.QVBoxLayout(dialog)
-
-            text_area = QtWidgets.QTextEdit()
-            text_area.setPlainText(summary_text)
-            text_area.setReadOnly(True)
-            layout.addWidget(text_area)
-
-            button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
-            button_box.accepted.connect(dialog.accept)
-            layout.addWidget(button_box)
-
-            dialog.exec()
-
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(None, "Error", f"Error displaying results: {e}")
-
-class CacheWrapper:
-    """Wrapper class to make MemoryHierarchy compatible with existing UI code"""
-
-    def __init__(self, memory_hierarchy):
-        self.memory_hierarchy = memory_hierarchy
-        self.stats = {'total_accesses': 0, 'hits': 0, 'misses': 0}
-
-    def access(self, address, access_type="read"):
-        """Access memory through the hierarchy"""
-        try:
-            if access_type.lower() == "read":
-                # Simple heuristic: treat low addresses as instructions
-                if address < 0x1000:
-                    self.memory_hierarchy.read_instruction(address)
-                else:
-                    self.memory_hierarchy.read_data(address)
-            else:
-                self.memory_hierarchy.write_data(address, 0)
-
-            # Update wrapper stats
-            stats = self.memory_hierarchy.get_statistics()
-            l1d_stats = stats['l1_dcache']
-            l1i_stats = stats['l1_icache']
-
-            self.stats['total_accesses'] = l1d_stats['accesses'] + l1i_stats['accesses']
-            self.stats['hits'] = l1d_stats['hits'] + l1i_stats['hits']
-            self.stats['misses'] = l1d_stats['misses'] + l1i_stats['misses']
-
-            # Return True if it was a hit (simplified)
-            return self.stats['hits'] > 0
-
-        except Exception as e:
-            print(f"Cache access error: {e}")
-            return False
-
-    def reset_stats(self):
-        """Reset statistics"""
-        if self.memory_hierarchy:
-            self.memory_hierarchy.reset_statistics()
-        self.stats = {'total_accesses': 0, 'hits': 0, 'misses': 0}
-
-    @property
-    def sets(self):
-        """Return cache sets for display (L1D cache)"""
-        if self.memory_hierarchy:
-            return self.memory_hierarchy.l1_dcache.blocks
-        return []
-
-
-def main():
-    """Main function to launch the ARMv7 Simulator GUI"""
+if __name__ == "__main__":
+    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-
     sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()
